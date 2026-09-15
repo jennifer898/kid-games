@@ -1,7 +1,14 @@
 # kid-games
 
-Single-file-ish, offline-friendly learning games for kids. No framework, no
-build step — the files in this repo are exactly what gets served.
+Offline-friendly learning games for kids. No framework, no build step — the
+files in this repo are exactly what gets served.
+
+Each game is a self-contained folder that can be deployed on its own:
+
+| Game | Folder | For |
+|---|---|---|
+| 🦄 Charlotte's Spelling Stickers | repo root | spelling, reading, 2nd-grade math |
+| 🐉 Spellbound: The Dragon's Ledger | `spellbound/` | decimals, money, grades 3–5 review |
 
 ## 🦄 Charlotte's Spelling Stickers
 
@@ -126,3 +133,51 @@ _headers                headers and cache policy (manual deploys)
 netlify.toml            the same, for a future Git-connected deploy
 tools/build-sw.py       regenerates sw.js's file list and version
 ```
+
+---
+
+# 🐉 Spellbound: The Dragon's Ledger
+
+A math RPG in `spellbound/`. You pick an element, then battle your way across
+five zones by solving decimal, money and mixed problems, earning gold, pets,
+gear and tower runs along the way. Mixed in are multiple-choice science and
+word-study questions, plus "Memory Magic" review drawn from grades 3–5.
+
+Deploy it exactly like the other game, but drag the **`spellbound/` folder**
+rather than the repo root — it's self-contained, with its own `index.html`,
+art, font, icons and `_headers`.
+
+## Where the questions live
+
+| Constant | What it is |
+|---|---|
+| `QBANK.sci` / `QBANK.words` | Multiple-choice science and word-study questions |
+| `makeProblem()` | Generates the decimal and money problems, scaled by `tier()` |
+| `makeReview()` | The grades 3–5 "Memory Magic" refreshers |
+| `ZONES` | The five map zones and which mode each one drills |
+
+Every question in `QBANK` stores its correct answer at index 0 and is shuffled
+at display time by `shuffleMcq()`, so adding one means writing the right answer
+first. That shuffle must stay a real Fisher-Yates — see the note in the code.
+
+## Saving
+
+Progress is written to `localStorage` first, then pushed to a Google Apps
+Script backend so one wizard can follow you between devices. The cloud symbol
+in the top bar says which happened:
+
+| | |
+|---|---|
+| ☁️ | Saved to the cloud, safe on every device |
+| 📱 | No connection — saved on this device, nothing lost |
+| ⚠️ | The backend refused the save; worth a look |
+
+When both a local and a cloud save exist, whichever got further wins, so
+finishing a session on the tablet isn't undone by an older save on the laptop.
+
+The backend lives in `spellbound/backend/Code.gs`, with update instructions at
+the top of that file. It needs redeploying only if you change it.
+
+> **Note:** the backend URL is readable in the page source, as is the wizard
+> list it serves. It holds game progress only — no personal data — but it is
+> why this site is also set to `noindex`.

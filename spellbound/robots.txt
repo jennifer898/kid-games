@@ -1,0 +1,4 @@
+# This site is a personal practice app for one child and carries her full
+# name. It is unlisted, not secret — please don't index it.
+User-agent: *
+Disallow: /

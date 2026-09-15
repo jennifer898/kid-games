@@ -1,0 +1,1333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Spellbound: The Dragon's Ledger</title>
+<meta name="description" content="A math adventure: battle dragons by solving decimal, money and review problems.">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#4b3a8f">
+<meta name="color-scheme" content="light">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Spellbound">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" href="icons/favicon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="preload" href="fonts/fredoka-variable.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="fonts/fredoka.css">
+<style>
+  :root{
+    --sky:#8ed3f4; --sky2:#5fb7ea;
+    --panel:#4b3a8f; --panel-dk:#372a6d;
+    --cream:#fff7e6;
+    --grass:#63c74d;
+    --hpG:#58d858; --hpR:#ff5a5a;
+    --gold:#ffcf40;
+    --ink:#2b2440;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Fredoka',sans-serif; color:var(--ink);
+    background:linear-gradient(180deg,var(--sky) 0%,var(--sky2) 55%,#3f9bd6 100%);
+    min-height:100vh; display:flex; justify-content:center; padding:10px;
+  }
+  #app{width:100%;max-width:600px;}
+  #hud{display:none; align-items:center; gap:10px; background:var(--panel); border-radius:16px;
+    padding:8px 14px; margin-bottom:10px; color:#fff; box-shadow:0 4px 0 var(--panel-dk); flex-wrap:wrap;}
+  #hud .name{font-weight:700;}
+  #hud .lvl{background:var(--gold); color:#5c4300; border-radius:10px; padding:1px 10px; font-weight:700;}
+  #hud .gold{color:var(--gold); font-weight:600;}
+  #hud .gear{font-size:18px;}
+  .xpwrap{flex-basis:100%; height:10px; background:var(--panel-dk); border-radius:6px; overflow:hidden;}
+  .xpwrap>div{height:100%; background:linear-gradient(90deg,#7ee0ff,#b18cff); transition:width .5s;}
+  .card{background:var(--cream); border-radius:22px; padding:22px 18px; text-align:center;
+    box-shadow:0 6px 0 rgba(0,0,0,.18);}
+  h1{font-size:36px; margin:4px 0 2px; color:var(--panel);}
+  h2{font-size:26px; margin:4px 0 8px; color:var(--panel);}
+  .story{font-size:18px; line-height:1.45; max-width:46ch; margin:8px auto;}
+  .big{font-size:64px; margin:2px 0;}
+  button{font-family:inherit; font-size:19px; font-weight:600; cursor:pointer;
+    background:var(--grass); color:#fff; border:none; border-radius:14px;
+    padding:12px 22px; margin:8px 5px 0; box-shadow:0 4px 0 #3f8f30;}
+  button:active{transform:translateY(3px); box-shadow:0 1px 0 #3f8f30;}
+  button.purple{background:var(--panel); box-shadow:0 4px 0 var(--panel-dk);}
+  button.goldb{background:var(--gold); color:#5c4300; box-shadow:0 4px 0 #c99b17;}
+  button:disabled{filter:grayscale(.7); opacity:.6; cursor:not-allowed;}
+  .pickrow{display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin:10px 0;}
+  .pick{background:#fff; border:3px solid transparent; border-radius:16px; padding:10px 14px; cursor:pointer; width:118px;}
+  .pick .em{font-size:44px;}
+  .pick.sel{border-color:var(--panel); background:#efe9ff;}
+  .pick small{display:block; font-weight:600;}
+  input[type=text]{font-family:inherit; font-size:20px; text-align:center; padding:10px; width:230px;
+    border-radius:12px; border:3px solid var(--panel); outline:none;}
+  .zone{display:flex; align-items:center; gap:12px; background:#fff; border-radius:16px;
+    padding:10px 14px; margin:10px auto; max-width:430px; text-align:left; cursor:pointer;
+    box-shadow:0 3px 0 rgba(0,0,0,.12);}
+  .zone.locked{filter:grayscale(1); opacity:.55; cursor:not-allowed;}
+  .zone .em{font-size:38px;}
+  .zone b{font-size:19px;}
+  .zone small{display:block; color:#6b6390;}
+  .zone .stars{margin-left:auto; color:var(--gold); font-size:18px; white-space:nowrap;}
+  #arena{display:flex; justify-content:space-between; align-items:flex-end; margin:6px 4px 4px; min-height:150px;}
+  #arena.stage{background-size:cover; background-position:center 65%; border-radius:16px; padding:14px 12px 10px;
+    min-height:190px; box-shadow:inset 0 0 0 3px rgba(0,0,0,.15);}
+  #arena.stage .fname{color:#fff; text-shadow:0 2px 3px rgba(0,0,0,.65); font-size:15px;}
+  #arena.stage .hptext{color:#fff; text-shadow:0 1px 2px rgba(0,0,0,.7);}
+  .zonehero{width:100%; max-width:460px; border-radius:16px; box-shadow:0 4px 0 rgba(0,0,0,.18); display:block; margin:6px auto;}
+  .fighter{width:44%;}
+  .sprite{font-size:78px; line-height:1; filter:drop-shadow(0 6px 0 rgba(0,0,0,.18)); display:inline-block;}
+  img.sprite{height:118px; width:auto; border-radius:14px; border:3px solid #fff; box-shadow:0 4px 8px rgba(0,0,0,.35); filter:none;}
+  .titleart{display:flex; gap:12px; justify-content:center; align-items:center; margin:6px 0;}
+  .titleart img{height:150px; border-radius:16px; border:3px solid #fff; box-shadow:0 5px 10px rgba(0,0,0,.25);}
+  .sprite.hitfx{animation:shake .4s;}
+  .sprite.faint{animation:faint .6s forwards;}
+  .sprite.castfx{animation:cast .45s;}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-10px)}50%{transform:translateX(9px)}75%{transform:translateX(-6px)}}
+  @keyframes faint{to{transform:translateY(30px) rotate(90deg); opacity:0;}}
+  @keyframes cast{50%{transform:translateY(-14px) scale(1.08);}}
+  .fname{font-weight:700; font-size:16px;}
+  .hpbar{height:14px; background:#ddd; border-radius:8px; overflow:hidden; margin-top:4px; border:2px solid rgba(0,0,0,.15);}
+  .hpbar>div{height:100%; background:var(--hpG); transition:width .4s;}
+  .hpbar.low>div{background:var(--hpR);}
+  .hptext{font-size:13px; font-weight:600;}
+  #fx{height:34px; font-size:28px;}
+  .spellrow{display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-top:4px;}
+  .spell{background:var(--panel); color:#fff; border-radius:14px; padding:8px 12px; cursor:pointer;
+    box-shadow:0 3px 0 var(--panel-dk); font-weight:600; font-size:16px;}
+  .spell small{display:block; font-weight:400; font-size:12px; color:#cfc3ff;}
+  .spell.lock{filter:grayscale(1); opacity:.5; cursor:not-allowed;}
+  .itemrow{display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-top:8px;}
+  .item{background:#fff; border-radius:12px; padding:6px 12px; cursor:pointer; font-weight:600; font-size:15px;
+    box-shadow:0 2px 0 rgba(0,0,0,.15);}
+  .item.none{opacity:.45; cursor:not-allowed;}
+  .optrow{display:flex; flex-direction:column; gap:6px; margin-top:8px;}
+  .opt{background:#fff; border:3px solid #d9d0f5; border-radius:12px; padding:9px 12px; cursor:pointer;
+    font-weight:600; font-size:17px; text-align:left; box-shadow:0 2px 0 rgba(0,0,0,.1);}
+  .opt.sel{border-color:var(--panel); background:#efe9ff;}
+  .opt.gone{visibility:hidden;}
+  .qbox{background:#fff; border-radius:16px; padding:12px 14px; margin:10px auto 4px; max-width:420px;
+    box-shadow:inset 0 0 0 3px #e4dcff;}
+  .qbox .qlabel{font-size:14px; color:#7a6fb0; font-weight:600;}
+  .qbox .qtext{font-size:26px; font-weight:700; margin:4px 0;}
+  .qbox input{width:160px; font-size:24px; border-color:#b7a7ee;}
+  .worked{background:var(--ink); color:#d9f0ff; border-radius:10px; display:inline-block; text-align:right;
+    padding:10px 16px; margin-top:8px; font-family:'Courier New',monospace; font-size:17px; font-weight:700; white-space:pre;}
+  .msg{min-height:40px; font-size:17px; margin-top:8px; line-height:1.35;}
+  .good{color:#2f9e44; font-weight:700;} .bad{color:#e03131; font-weight:700;}
+  .petrow{display:flex; gap:6px; justify-content:center; flex-wrap:wrap; margin-top:8px; font-size:26px;}
+  .petchip{background:#fff; border-radius:12px; padding:4px 8px; box-shadow:0 2px 0 rgba(0,0,0,.12);}
+  img.petface{height:34px; width:34px; object-fit:cover; border-radius:8px; vertical-align:middle;}
+  #hud img.petface{height:24px; width:24px; border-radius:6px;}
+  .bigface{height:120px !important; width:auto !important; border-radius:14px; border:3px solid #fff; box-shadow:0 4px 8px rgba(0,0,0,.3);}
+  .burst{animation:burst .6s;}
+  .mwrap{position:relative;display:inline-block;}
+  #mFx{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:3;}
+  .impact{position:absolute;animation:impactfx .75s forwards;}
+  @keyframes impactfx{0%{transform:scale(.3) rotate(-12deg);opacity:0}25%{transform:scale(1.35) rotate(4deg);opacity:1}100%{transform:scale(1.8) rotate(10deg);opacity:0}}
+  .statusfx{position:absolute;pointer-events:none;font-size:24px;z-index:2;animation:pulsefx 1.1s ease-in-out infinite;filter:drop-shadow(0 2px 2px rgba(0,0,0,.4));}
+  @keyframes pulsefx{0%,100%{transform:scale(1) translateY(0)}50%{transform:scale(1.25) translateY(-4px)}}
+  .freezeveil{position:absolute;inset:-2px;background:rgba(140,215,255,.38);border:2px solid rgba(200,240,255,.8);border-radius:14px;pointer-events:none;z-index:1;}
+  img.sprite.burning,.sprite.burning{filter:drop-shadow(0 0 12px #ff8c1a) saturate(1.25) !important;}
+  img.sprite.frozen,.sprite.frozen{filter:saturate(.5) brightness(1.15) !important;}
+  @keyframes burst{0%{transform:scale(.3)}60%{transform:scale(1.25)}100%{transform:scale(1)}}
+  .confetti{font-size:30px; letter-spacing:6px;}
+  /* shop */
+  .shopitem{display:flex; align-items:center; gap:12px; background:#fff; border-radius:14px;
+    padding:8px 12px; margin:8px auto; max-width:460px; text-align:left; box-shadow:0 2px 0 rgba(0,0,0,.12);}
+  .shopitem .em{font-size:32px;}
+  .shopitem b{font-size:17px;}
+  .shopitem small{display:block; color:#6b6390; font-size:13px;}
+  .shopitem .buy{margin-left:auto; white-space:nowrap;}
+  .shopitem button{font-size:15px; padding:8px 14px; margin:0;}
+  .price{color:#a4780a; font-weight:700; font-size:15px; text-align:right; margin-right:8px;}
+  .owned{color:#2f9e44; font-weight:700; font-size:14px;}
+  /* chest & key */
+  .chest{font-size:80px; cursor:pointer; display:inline-block; transition:transform .15s;}
+  .chest:active{transform:scale(.92);}
+  .keytrack{font-size:30px; letter-spacing:8px; margin:6px 0;}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="hud">
+    <span class="avatar" id="hAv">🧙</span>
+    <span class="name" id="hName">Wizard</span>
+    <span class="lvl" id="hLvl">Lv 1</span>
+    <span class="gold" id="hGold">🪙 0</span>
+    <span class="gear" id="hGear"></span>
+    <span id="hPets" style="margin-left:auto;font-size:20px;"></span>
+    <span id="hCloud" style="font-size:14px;"></span>
+    <div class="xpwrap"><div id="hXp" style="width:0%"></div></div>
+  </div>
+  <div class="card" id="screen"></div>
+</div>
+
+<script>
+/* ============ SPELLBOUND: THE DRAGON'S LEDGER ============ */
+/* ☁️ CLOUD SAVES: paste your Google Apps Script web-app URL (ends in /exec) between the quotes. */
+const BACKEND_URL = "https://script.google.com/macros/s/AKfycby6-WOO2E1JZUFB9lDzeEFyVDewGef_gmX9DNGlW7zlmhpbiA0BKlj3lZrZxkwkhpi9/exec";
+let _saveTimer=null, _cloudState="";
+
+/* ---- local backup ----------------------------------------------------
+   The cloud is what lets one wizard follow you between devices, but it
+   can't be the only copy: a dropped connection would otherwise throw away
+   the whole session. Every save is written to this device first, and the
+   cloud is treated as a bonus on top. */
+const LOCAL_KEY = n => "spellbound:" + String(n||"").trim().toLowerCase();
+function saveLocal(p){
+  try{ localStorage.setItem(LOCAL_KEY(p.name), JSON.stringify({data:p, at:Date.now()})); }
+  catch(e){ /* private mode or a full quota - the cloud is still tried */ }
+}
+function readLocal(name){
+  try{
+    const raw=localStorage.getItem(LOCAL_KEY(name));
+    return raw ? JSON.parse(raw) : null;
+  }catch(e){ return null; }
+}
+function localWizards(){
+  const out=[];
+  try{
+    for(let i=0;i<localStorage.length;i++){
+      const k=localStorage.key(i);
+      if(k && k.indexOf("spellbound:")===0){
+        const rec=JSON.parse(localStorage.getItem(k));
+        if(rec && rec.data && rec.data.name) out.push(rec);
+      }
+    }
+  }catch(e){}
+  return out;
+}
+
+function cloudReady(){return BACKEND_URL && P && P.name;}
+function scheduleSave(){
+  if(!P || !P.name) return;
+  clearTimeout(_saveTimer);
+  _saveTimer=setTimeout(saveGame, 2500);
+}
+async function saveGame(){
+  if(!P || !P.name) return;
+  saveLocal(P);                       // always, and before the network
+  if(!cloudReady()){ _cloudState="📱"; cloudDot(); return; }
+  try{
+    _cloudState="…"; cloudDot();
+    const res=await fetch(BACKEND_URL,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({name:P.name,data:P})});
+    /* The old version showed the happy cloud as soon as fetch resolved, so a
+       backend that answered {ok:false} still looked like a successful save. */
+    let body=null;
+    try{ body=await res.json(); }catch(e){}
+    /* Three distinct states, because they mean different things to a grown-up
+       who gets asked "what's this symbol?":
+         ☁️  saved to the cloud, safe on every device
+         📱  no connection, but saved on this device - nothing is lost
+         ⚠️  the backend actively refused the save - worth looking at */
+    if(res.ok && body && body.ok){ _cloudState="☁️"; }
+    else { _cloudState="⚠️"; console.warn("Cloud save rejected:", body && body.error); }
+    cloudDot();
+  }catch(e){_cloudState="📱"; cloudDot(); console.warn("Cloud unreachable; saved on this device only:", e);}
+}
+const CLOUD_TIP={"☁️":"Saved to the cloud","📱":"Saved on this device (no connection)","⚠️":"The cloud refused this save","…":"Saving…"};
+function cloudDot(){
+  const el=document.getElementById("hCloud");
+  if(el){ el.textContent=_cloudState; el.title=CLOUD_TIP[_cloudState]||""; }
+}
+async function loadGame(name){
+  const local=readLocal(name);
+  if(!BACKEND_URL) return local ? {ok:true, data:local.data} : {ok:false, error:"not_found"};
+  try{
+    const res=await fetch(BACKEND_URL+"?name="+encodeURIComponent(name));
+    const remote=await res.json();
+    if(!remote || !remote.ok) return local ? {ok:true, data:local.data} : remote;
+    /* Both copies exist: prefer whichever got further, so finishing a session
+       on the tablet can't be undone by an older save on the laptop. */
+    if(local && progressOf(local.data) > progressOf(remote.data)) return {ok:true, data:local.data};
+    return remote;
+  }catch(e){
+    return local ? {ok:true, data:local.data} : {ok:false, error:"offline"};
+  }
+}
+/* A rough "how far along is this save" score, used only to break ties. */
+function progressOf(d){
+  if(!d) return -1;
+  return (+d.solved||0) + (+d.lvl||0)*10 + (+d.rank||0)*100 + (+d.towerBest||0);
+}
+async function listWizards(){
+  /* Merge what the cloud knows with what this device knows, so the picker
+     still offers your wizards with no connection. Never throws: the caller
+     shows an error screen for ok:false, and "no internet" is not an error
+     worth blocking on when there is a local save sitting right here. */
+  const mine=localWizards().map(rec=>({
+    name:rec.data.name, level:rec.data.lvl||1, gold:rec.data.gold||0,
+    el:rec.data.el||"", updated:new Date(rec.at||0).toISOString(), local:true
+  }));
+  let cloud=[];
+  if(BACKEND_URL){
+    try{
+      const res=await fetch(BACKEND_URL+"?action=list");
+      const j=await res.json();
+      if(j && j.ok && j.wizards) cloud=j.wizards;
+    }catch(e){ /* offline - the local list carries us */ }
+  }
+  const byKey={};
+  cloud.forEach(w=>{ byKey[String(w.name).trim().toLowerCase()]=w; });
+  mine.forEach(w=>{
+    const k=String(w.name).trim().toLowerCase();
+    // keep whichever copy is newer, but never drop a wizard entirely
+    if(!byKey[k] || String(w.updated) > String(byKey[k].updated||"")) byKey[k]=w;
+  });
+  const wizards=Object.keys(byKey).map(k=>byKey[k])
+    .sort((a,b)=> String(a.updated) < String(b.updated) ? 1 : -1);
+  return {ok:true, wizards:wizards};
+}
+function makeDefaultP(nm,el){
+  return {name:nm, el:el, lvl:1, xp:0, gold:15, hpMax:100, hp:100, pets:[], zone:0,
+     stars:[0,0,0,0,0], solved:0, missed:0, rank:0, towerBest:0, outfit:null, subjects:"math", wardrobe:{}, wonGame:false,
+     sword:0, shield:0, potions:1, scrolls:1, hearts:0, gems:{}, activeGems:{}, pin:""};
+}
+function normalizeSave(saved){
+  const base=makeDefaultP(saved.name||"Wizard", saved.el||"fire");
+  const p=Object.assign(base, saved);
+  p.pets=(p.pets||[]).map(x=>[x[0],x[1],x[2]||0]);
+  p.stars=p.stars&&p.stars.length===5?p.stars:[0,0,0,0,0];
+  p.gems=p.gems||{}; p.activeGems={}; p.wardrobe=p.wardrobe||{}; p.subjects=p.subjects||"math";
+  p.hp=Math.min(p.hp||p.hpMax, p.hpMax);
+  return p;
+}
+const ELEMENTS = {
+  fire:  {orb:"🔥", name:"Fire",  sig:"the BURN specialist: damage that keeps ticking"},
+  water: {orb:"💧", name:"Water", sig:"the HEALER: big waves restore health"},
+  leaf:  {orb:"🍃", name:"Leaf",  sig:"the SURVIVOR: steady strikes that heal on hit"},
+  storm: {orb:"⚡", name:"Storm", sig:"the STUNNER: enemies cannot hit back"},
+};
+const SPELLS = [
+  {el:"fire", lvl:1, name:"Flame Flick",   icon:"🔥", dmg:[13,19], cd:0, fx:"basic", fxText:"quick fiery jab — always ready"},
+  {el:"fire", lvl:3, name:"Ember Burst",   icon:"🔥", dmg:[16,22], cd:2, fx:"burn", burn:[6,3], fxText:"BURN: 6 dmg each turn ×3"},
+  {el:"fire", lvl:5, name:"Blaze Lash",    icon:"🎆", dmg:[24,32], cd:3, fx:"burn", burn:[8,2], fxText:"heavy hit + BURN 8×2"},
+  {el:"fire", lvl:8, name:"Inferno",       icon:"🌋", dmg:[38,50], cd:5, fx:"burn", burn:[8,3], fxText:"massive hit + BURN 8×3"},
+  {el:"water",lvl:1, name:"Splash Jab",    icon:"💧", dmg:[13,19], cd:0, fx:"basic", fxText:"quick splashy jab — always ready"},
+  {el:"water",lvl:3, name:"Tidal Surge",   icon:"💧", dmg:[16,22], cd:2, fx:"soak", heal:10, fxText:"heals you 10"},
+  {el:"water",lvl:5, name:"Riptide",       icon:"🌊", dmg:[24,32], cd:3, fx:"soak", heal:8,  fxText:"heavy hit + heal 8"},
+  {el:"water",lvl:8, name:"Tsunami",       icon:"🌊", dmg:[38,50], cd:5, fx:"soak", heal:15, fxText:"massive hit + heal 15"},
+  {el:"leaf", lvl:1, name:"Vine Snap",     icon:"🍃", dmg:[13,19], cd:0, fx:"sap",  heal:5,  fxText:"heals you 5 on every hit"},
+  {el:"leaf", lvl:3, name:"Thorn Volley",  icon:"🌿", dmg:[11,16], cd:2, fx:"twin", fxText:"strikes TWICE"},
+  {el:"leaf", lvl:5, name:"Regrowth Bloom",icon:"🌸", dmg:[22,30], cd:3, fx:"sap",  heal:12, fxText:"hit + heal 12"},
+  {el:"leaf", lvl:8, name:"Wildheart",     icon:"🌳", dmg:[36,48], cd:5, fx:"sap",  heal:12, fxText:"massive hit + heal 12"},
+  {el:"storm",lvl:1, name:"Static Jab",    icon:"⚡", dmg:[13,19], cd:0, fx:"basic", fxText:"quick zappy jab — always ready"},
+  {el:"storm",lvl:3, name:"Thunder Zap",   icon:"⚡", dmg:[16,22], cd:3, fx:"stun", stun:1, fxText:"STUN: blocks next counterattack"},
+  {el:"storm",lvl:5, name:"Chain Lightning",icon:"🌩️",dmg:[13,18], cd:3, fx:"twin", fxText:"strikes TWICE"},
+  {el:"storm",lvl:8, name:"Stormcaller",   icon:"🌩️", dmg:[36,48], cd:5, fx:"stun", stun:1, fxText:"massive hit + STUN"},
+  {el:"ice",   lvl:4, name:"Frost Nova",   icon:"❄️", dmg:[21,29], cd:3, fx:"freeze", freeze:2, fxText:"FREEZE: halves next 2 hits on you"},
+  {el:"ice",   lvl:6, name:"Crystal Lance",icon:"🔮", dmg:[30,40], cd:4, fx:"lance", fxText:"DOUBLE damage vs frozen foes"},
+  {el:"shadow",lvl:5, name:"Shadow Drain", icon:"🌑", dmg:[24,32], cd:3, fx:"drain", fxText:"steals a third of damage as hearts"},
+  {el:"wind",  lvl:7, name:"Cyclone",      icon:"🌪️", dmg:[26,36], cd:4, fx:"windfall", fxText:"blows loose gold your way"},
+  {el:"cosmic",lvl:6, name:"Star Shower",  icon:"🌟", dmg:[15,22], cd:3, fx:"twin", fxText:"strikes TWICE"},
+  {el:"cosmic",lvl:10,name:"Galaxy Blast", icon:"🌌", dmg:[40,55], cd:6, fx:"ultimate", fxText:"huge hit + BURN + STUN"},
+];
+const GEMS={fire:{em:"🔴",name:"Fire Gem",cost:12},water:{em:"🔵",name:"Water Gem",cost:12},leaf:{em:"🟢",name:"Leaf Gem",cost:12},storm:{em:"🟡",name:"Storm Gem",cost:12},ice:{em:"❄️",name:"Ice Gem",cost:18},shadow:{em:"🟣",name:"Shadow Gem",cost:20},wind:{em:"🌀",name:"Wind Gem",cost:22},cosmic:{em:"💜",name:"Cosmic Gem",cost:30}};
+const GEM_BATTLES=3;
+const SWORDS=[{n:"Training Wand",em:"🪄",b:0},{n:"Knight Sword",em:"🗡️",b:7,cost:20.00},{n:"Master Sword",em:"⚔️",b:15,cost:45.00}];
+const SHIELDS=[{n:"No Shield",em:"",r:0},{n:"Knight Shield",em:"🛡️",r:4,cost:18.00},{n:"Mirror Shield",em:"🔰",r:8,cost:40.00}];
+const ZONES = [
+  {name:"Sunny Meadow",   em:"🌻", mode:"add1",  desc:"Adding tenths",        mobs:[["Gloop the Slime","🟢"],["Grumble Goblin","👺"],["Sting Knight","🐝"]], boss:["King Toadstool","🍄"], mhp:40},
+  {name:"Crystal Caves",  em:"💎", mode:"add2",  desc:"Adding hundredths",    mobs:[["Prism Bat","🦇"],["Rock Pup","🐕"],["Frost Golem","🧊"]],        boss:["Crystal Colossus","🗿"],  mhp:55},
+  {name:"Tidal Cove",     em:"🌊", mode:"sub1",  desc:"Subtracting decimals", mobs:[["Snapclaw","🦞"],["Puff the Puffer","🐡"],["Inky","🦑"]],         boss:["Tidal Titan","🐢"],  mhp:70},
+  {name:"Market Village", em:"🏪", mode:"money", desc:"Money problems",       mobs:[["Mimic Chest","🧰"],["Coin Bandit","🥷"],["Sweepy the Broom","🧹"]], boss:["Merchant King","🤴"],  mhp:85},
+  {name:"Volcano Keep",   em:"🌋", mode:"mixed", desc:"Everything mixed!",    mobs:[["Fire Imp","😈"],["Magma Golem","🌋"],["Ash Phoenix","🐦‍🔥"]],    boss:["PYRA THE DRAGON","🐉"], mhp:110},
+];
+const xpCap=l=>l<=0?0:(l<5?[60,150,270,420][l-1]:420+(l-4)*180);
+const BGS = {0:"img/bg-0.jpg",2:"img/bg-2.jpg",3:"img/bg-3.jpg",4:"img/bg-4.jpg",1:"img/bg-1.jpg"};
+
+const ART={o_arcane:"img/o-arcane.jpg",o_fire:"img/o-fire.jpg",o_ice:"img/o-ice.jpg",o_leaf:"img/o-leaf.jpg",o_light:"img/o-light.jpg",o_shadow:"img/o-shadow.jpg",o_blood:"img/o-blood.jpg",o_lunar:"img/o-lunar.jpg",o_ranger:"img/o-ranger.jpg",o_storm:"img/o-storm.jpg",o_royal:"img/o-royal.jpg",nv_goblin1:"img/nv-goblin1.jpg",nv_goblin2:"img/nv-goblin2.jpg",nv_goblin3:"img/nv-goblin3.jpg",nv_bee1:"img/nv-bee1.jpg",nv_bee2:"img/nv-bee2.jpg",nv_bee3:"img/nv-bee3.jpg",nv_bat1:"img/nv-bat1.jpg",nv_bat2:"img/nv-bat2.jpg",nv_bat3:"img/nv-bat3.jpg",nv_cgolem1:"img/nv-cgolem1.jpg",nv_cgolem2:"img/nv-cgolem2.jpg",nv_cgolem3:"img/nv-cgolem3.jpg",nv_crab1:"img/nv-crab1.jpg",nv_crab2:"img/nv-crab2.jpg",nv_crab3:"img/nv-crab3.jpg",nv_puffer1:"img/nv-puffer1.jpg",nv_puffer2:"img/nv-puffer2.jpg",nv_puffer3:"img/nv-puffer3.jpg",nv_mimic1:"img/nv-mimic1.jpg",nv_mimic2:"img/nv-mimic2.jpg",nv_mimic3:"img/nv-mimic3.jpg",nv_imp1:"img/nv-imp1.jpg",nv_imp2:"img/nv-imp2.jpg",nv_imp3:"img/nv-imp3.jpg",nv_mgolem1:"img/nv-mgolem1.jpg",nv_mgolem2:"img/nv-mgolem2.jpg",nv_mgolem3:"img/nv-mgolem3.jpg",nv_dragon1:"img/nv-dragon1.jpg",nv_dragon2:"img/nv-dragon2.jpg",nv_dragon3:"img/nv-dragon3.jpg",splash:"img/splash.jpg",hero_fire:"img/hero-fire.jpg",hero_water:"img/hero-water.jpg",hero_leaf:"img/hero-leaf.jpg",hero_storm:"img/hero-storm.jpg",fx_comet:"img/fx-comet.jpg",fx_fire:"img/fx-fire.jpg",fx_ice:"img/fx-ice.jpg",fx_bolt:"img/fx-bolt.jpg",fx_heal:"img/fx-heal.jpg",fx_star:"img/fx-star.jpg",fx_orb:"img/fx-orb.jpg",fx_sparkle:"img/fx-sparkle.jpg",ch_wood:"img/ch-wood.jpg",ch_blue:"img/ch-blue.jpg",ch_red:"img/ch-red.jpg",ch_crystal:"img/ch-crystal.jpg",ch_dragon:"img/ch-dragon.jpg",ev_slime1:"img/ev-slime1.jpg",ev_slime2:"img/ev-slime2.jpg",ev_slime3:"img/ev-slime3.jpg",ev_pup1:"img/ev-pup1.jpg",ev_pup2:"img/ev-pup2.jpg",ev_pup3:"img/ev-pup3.jpg",ev_oct1:"img/ev-oct1.jpg",ev_oct2:"img/ev-oct2.jpg",ev_oct3:"img/ev-oct3.jpg",ev_phx1:"img/ev-phx1.jpg",ev_phx2:"img/ev-phx2.jpg",ev_phx3:"img/ev-phx3.jpg",worldmap:"img/worldmap.jpg",finale:"img/finale.jpg"};
+const ICONS={potion:"img/icon-potion.jpg",scroll:"img/icon-scroll.jpg",heart:"img/icon-heart.jpg",sword:"img/icon-sword.jpg",shield:"img/icon-shield.jpg",key:"img/icon-key.jpg",chest:"img/icon-chest.jpg",coins:"img/icon-coins.jpg"};
+const SPELL_FX={sap:"fx_heal",burn:"fx_fire",stun:"fx_bolt",freeze:"fx_ice",soak:"fx_orb",drain:"fx_comet",twin:"fx_star",windfall:"fx_sparkle",lance:"fx_ice",ultimate:"fx_comet"};
+const fxImg=(fx,h=26)=>SPELL_FX[fx]?`<img src="${ART[SPELL_FX[fx]]}" style="height:${h}px;width:${h}px;object-fit:cover;border-radius:6px;vertical-align:middle" alt="">`:"";
+const ic=(k,h=34)=>`<img src="${ICONS[k]}" style="height:${h}px;width:auto;vertical-align:middle;border-radius:8px" alt="">`;
+const MOB_IMG={"Gloop the Slime":"img/mob-slime.jpg","Rock Pup":"img/mob-pup.jpg","Inky":"img/mob-inky.jpg","Ash Phoenix":"img/mob-phoenix.jpg","King Toadstool":"img/mob-toadstool.jpg","Grumble Goblin":"img/mob-goblin.jpg","Sting Knight":"img/mob-knight.jpg","Prism Bat":"img/mob-bat.jpg","Crystal Colossus":"img/mob-colossus.jpg","Frost Wisp":"img/mob-wisp.jpg","Snapclaw":"img/mob-snapclaw.jpg","Puff the Puffer":"img/mob-puffer.jpg","Tidal Titan":"img/mob-titan.jpg","Mimic Chest":"img/mob-chest.jpg","Coin Bandit":"img/mob-bandit.jpg","Sweepy the Broom":"img/mob-broom.jpg","Fire Imp":"img/mob-imp.jpg","Magma Golem":"img/mob-golem.jpg"};
+const EVO={"Gloop the Slime":["ev_slime1","ev_slime2","ev_slime3"],"Rock Pup":["ev_pup1","ev_pup2","ev_pup3"],"Inky":["ev_oct1","ev_oct2","ev_oct3"],"Ash Phoenix":["ev_phx1","ev_phx2","ev_phx3"],
+"Grumble Goblin":["nv_goblin1","nv_goblin2","nv_goblin3"],"Sting Knight":["nv_bee1","nv_bee2","nv_bee3"],"Prism Bat":["nv_bat1","nv_bat2","nv_bat3"],"Frost Golem":["nv_cgolem1","nv_cgolem2","nv_cgolem3"],
+"Snapclaw":["nv_crab1","nv_crab2","nv_crab3"],"Puff the Puffer":["nv_puffer1","nv_puffer2","nv_puffer3"],"Mimic Chest":["nv_mimic1","nv_mimic2","nv_mimic3"],"Fire Imp":["nv_imp1","nv_imp2","nv_imp3"],
+"Magma Golem":["nv_mgolem1","nv_mgolem2","nv_mgolem3"],"Pyra Jr.":["nv_dragon1","nv_dragon2","nv_dragon3"]};
+const petStage=p=>(p[2]||0)>=20?2:(p[2]||0)>=8?1:0;
+const petArt=p=>EVO[p[0]]?ART[EVO[p[0]][petStage(p)]]:(MOB_IMG[p[0]]||null);
+const PET_ABIL={
+ "Gloop the Slime":{d:st=>`Regen: heal ${2+st*2} ❤️ at the start of every battle`,regen:st=>2+st*2},
+ "Grumble Goblin":{d:st=>`Bruiser: +${2+st*2} damage on every spell`,dmg:st=>2+st*2},
+ "Sting Knight":{d:st=>`Sting Crit: ${8+st*4}% chance to DOUBLE a hit`,crit:st=>(8+st*4)/100},
+ "Prism Bat":{d:st=>`Swoop: ${10+st*5}% chance enemy counterattacks miss`,dodge:st=>(10+st*5)/100},
+ "Rock Pup":{d:st=>`Guard: blocks ${2+st} damage from every enemy hit`,guard:st=>2+st},
+ "Frost Golem":{d:st=>`Chill: ${10+st*5}% chance to FREEZE on hit`,chill:st=>(10+st*5)/100},
+ "Snapclaw":{d:st=>`Pincer: +${3+st*2} damage on quick (no-recharge) spells`,quick:st=>3+st*2},
+ "Puff the Puffer":{d:st=>`Bubble Bounty: heal ${3+st*2} ❤️ after every win`,winheal:st=>3+st*2},
+ "Inky":{d:st=>`Ink Cloud: ${10+st*5}% chance to halve the enemy's next hit`,ink:st=>(10+st*5)/100},
+ "Mimic Chest":{d:st=>`Hoarder: +${15+st*10}% gold from chests`,chestmult:st=>1+(15+st*10)/100},
+ "Coin Bandit":{d:st=>`Sticky Fingers: +${(0.5+st*0.5).toFixed(2)} gold every win`,wingold:st=>0.5+st*0.5},
+ "Sweepy the Broom":{d:st=>`Dust Off: ${20+st*10}% chance a hit sweeps 1 turn off all recharges`,sweep:st=>(20+st*10)/100},
+ "Fire Imp":{d:st=>`Kindle: your burns tick for +${1+st} extra damage`,kindle:st=>1+st},
+ "Magma Golem":{d:st=>`Heavy Hands: +${3+st*2} damage on big (recharge 3+) spells`,heavy:st=>3+st*2},
+ "Ash Phoenix":{d:st=>`Phoenix Feather: once per battle, survive a knockout at 1 ❤️ (then heal ${5+st*5})`,feather:st=>5+st*5},
+ "Pyra Jr.":{d:st=>`Dragonfire: +${2+st} damage AND burns tick +1`,dmg:st=>2+st,kindle:()=>1},
+};
+const petPerk=(key)=>P.pets.reduce((t,p)=>{const a=PET_ABIL[p[0]];return t+((a&&a[key])?a[key](petStage(p)):0);},0);
+const petProc=(key)=>P.pets.some(p=>{const a=PET_ABIL[p[0]];return a&&a[key]&&Math.random()<a[key](petStage(p));});
+const petBonusOf=p=>PET_ABIL[p[0]]&&PET_ABIL[p[0]].dmg?PET_ABIL[p[0]].dmg(petStage(p)):0;
+MOB_IMG["Merchant King"]="img/mob-merchant-king.jpg";
+const mobArt=m=>MOB_IMG[m[0]]||null;
+const mobFace=(m,cls="petface")=>{const a=(m.length>2||EVO[m[0]])?petArt(m):mobArt(m);return a?`<img class="${cls}" src="${a}" alt="">`:m[1];};
+const OUTFITS={
+ fire:  {art:"o_fire",  name:"Flamecaller Robes", how:"Fire wizards start with these", un:()=>P.el==="fire"},
+ water: {art:"o_ice",   name:"Frosttide Robes",   how:"Water wizards start with these", un:()=>P.el==="water"},
+ leaf:  {art:"o_leaf",  name:"Wildgrove Robes",   how:"Leaf wizards start with these", un:()=>P.el==="leaf"},
+ storm: {art:"o_storm", name:"Stormforged Robes", how:"Storm wizards start with these", un:()=>P.el==="storm"},
+ ranger:{art:"o_ranger",name:"Adventurer's Garb", how:"Buy at Beedle's Bazaar (30 gold)", un:()=>P.wardrobe&&P.wardrobe.ranger},
+ arcane:{art:"o_arcane",name:"Arcane Scholar",    how:"Reach Level 10", un:()=>P.lvl>=10},
+ lunar: {art:"o_lunar", name:"Lunar Mystic",      how:"Befriend 6 pets", un:()=>P.pets.length>=6},
+ light: {art:"o_light", name:"Lightbringer",      how:"Earn 9 total ⭐ across the realms", un:()=>P.stars.reduce((a,b)=>a+b,0)>=9},
+ shadow:{art:"o_shadow",name:"Shadowweave",       how:"Reach floor 10 of the Endless Tower", un:()=>(P.towerBest||0)>=10},
+ blood: {art:"o_blood", name:"Dragonhide Battlegear", how:"Ascend to Ledger Rank 2", un:()=>(P.rank||0)>=1},
+ royal: {art:"o_royal", name:"Royal Regalia",     how:"Defeat Pyra and balance the Ledger", un:()=>!!P.wonGame},
+};
+const heroImg=()=>{const o=P.outfit&&OUTFITS[P.outfit];if(o&&o.un())return ART[o.art];return ART["o_"+({fire:"fire",water:"ice",leaf:"leaf",storm:"storm"}[P.el])]||ART["hero_"+P.el]||HERO_IMG;};
+const HERO_IMG="img/hero-default.jpg";
+const PYRA_IMG="img/pyramid.jpg";
+let P=null, B=null;
+
+const ri=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const r1=()=>+(ri(11,99)/10).toFixed(1);
+const r2=()=>+(ri(101,2999)/100).toFixed(2);
+const money=()=>+(ri(150,2499)/100).toFixed(2);
+const fmt=n=>(+(+n).toFixed(3)).toString();
+const fmt$=n=>"$"+(+n).toFixed(2);
+function worked(a,b,op,ans){
+  const decs=x=>{const s=fmt(x);return s.includes(".")?s.split(".")[1].length:0;};
+  const d=Math.max(decs(a),decs(b),decs(ans));
+  const f=x=>(+x).toFixed(d);
+  const w=Math.max(f(a).length,f(b).length,f(ans).length)+2;
+  const pad=s=>s.padStart(w," ");
+  return pad(f(a))+"\n"+op+pad(f(b)).slice(1)+"\n"+"—".repeat(w)+"\n"+pad(f(ans));
+}
+function setupOnly(a,b,op){
+  const decs=x=>{const s=fmt(x);return s.includes(".")?s.split(".")[1].length:0;};
+  const d=Math.max(decs(a),decs(b));
+  const f=x=>(+x).toFixed(d);
+  const w=Math.max(f(a).length,f(b).length)+2;
+  const pad=s=>s.padStart(w," ");
+  return pad(f(a))+"\n"+op+pad(f(b)).slice(1)+"\n"+"—".repeat(w)+"\n"+pad("?");
+}
+const QBANK={
+sci:[
+{q:"Which part of the cell is the 'control center' that holds DNA?",o:["Nucleus","Cell membrane","Cytoplasm","Cell wall"],c:0,w:"The nucleus directs the cell's activities and stores its DNA."},
+{q:"Which organelle is the 'powerhouse' that makes energy for the cell?",o:["Mitochondria","Nucleus","Vacuole","Ribosome"],c:0,w:"Mitochondria turn food into usable energy (ATP)."},
+{q:"Plant cells have this stiff outer layer that animal cells do NOT have.",o:["Cell wall","Cell membrane","Nucleus","Mitochondria"],c:0,w:"The cell wall gives plant cells their rigid shape."},
+{q:"What do plants make during photosynthesis?",o:["Sugar and oxygen","Salt and water","Carbon dioxide and soil","Protein and nitrogen"],c:0,w:"Plants use sunlight, water, and CO₂ to make glucose (sugar) and release oxygen."},
+{q:"Which of these is a PRODUCER in a food web?",o:["Grass","Rabbit","Hawk","Mushroom"],c:0,w:"Producers make their own food from sunlight — plants like grass."},
+{q:"An animal that eats only other animals is a…",o:["Carnivore","Herbivore","Omnivore","Producer"],c:0,w:"Carnivores eat meat; herbivores eat plants; omnivores eat both."},
+{q:"Decomposers like fungi and bacteria help an ecosystem by…",o:["Breaking down dead material and recycling nutrients","Producing oxygen","Hunting prey","Blocking sunlight"],c:0,w:"Decomposers return nutrients from dead things back to the soil."},
+{q:"Which is a renewable energy source?",o:["Solar power","Coal","Oil","Natural gas"],c:0,w:"Sunlight keeps coming — coal, oil, and gas take millions of years to form."},
+{q:"Energy of MOTION is called…",o:["Kinetic energy","Potential energy","Thermal energy","Chemical energy"],c:0,w:"Kinetic = moving. Potential = stored (like a stretched rubber band)."},
+{q:"A ball held at the top of a hill has mostly…",o:["Potential energy","Kinetic energy","Sound energy","Electrical energy"],c:0,w:"Stored energy due to position = potential energy. It becomes kinetic when it rolls."},
+{q:"Speed is calculated by…",o:["Distance ÷ time","Distance × time","Time ÷ distance","Distance + time"],c:0,w:"Speed = distance divided by time, like miles per hour."},
+{q:"An object at rest stays at rest unless acted on by a force. That's…",o:["Newton's 1st Law (inertia)","Newton's 3rd Law","Gravity","Friction"],c:0,w:"Newton's First Law is the law of inertia."},
+{q:"The force that pulls objects toward Earth's center is…",o:["Gravity","Magnetism","Friction","Inertia"],c:0,w:"Gravity pulls everything with mass toward Earth."},
+{q:"The force that slows a sliding box on the floor is…",o:["Friction","Gravity","Magnetism","Momentum"],c:0,w:"Friction resists motion between surfaces that touch."},
+{q:"Which is a PHYSICAL change?",o:["Ice melting","Wood burning","Iron rusting","Bread baking"],c:0,w:"Melting changes the state, not the substance — it's still water."},
+{q:"Which is a CHEMICAL change?",o:["A nail rusting","Ice melting","Paper being cut","Sugar dissolving"],c:0,w:"Rusting makes a NEW substance (iron oxide) — that's chemical."},
+{q:"Salt water is an example of a…",o:["Mixture (solution)","Element","Compound only","Pure substance"],c:0,w:"Salt dissolved in water is a solution — a type of mixture you can separate."},
+{q:"Density is…",o:["Mass ÷ volume","Mass × volume","Volume ÷ mass","Weight + size"],c:0,w:"Density = how much mass is packed into a space: mass divided by volume."},
+{q:"An object sinks in water when its density is…",o:["Greater than water's","Less than water's","Equal to zero","Not related to water"],c:0,w:"Denser than water sinks; less dense floats."},
+{q:"The three states of matter you see every day are…",o:["Solid, liquid, gas","Hot, warm, cold","Rock, water, air only","Atoms, molecules, cells"],c:0,w:"Solid, liquid, and gas (plasma is the wilder fourth)."},
+{q:"Earth's crust is broken into huge moving pieces called…",o:["Tectonic plates","Continents only","Core fragments","Lava sheets"],c:0,w:"Tectonic plates float on the mantle — their motion builds mountains and causes earthquakes."},
+{q:"Which rock type forms from cooled magma or lava?",o:["Igneous","Sedimentary","Metamorphic","Fossil"],c:0,w:"Igneous = 'from fire.' Sedimentary is pressed layers; metamorphic is changed by heat/pressure."},
+{q:"Weather is day-to-day; climate is…",o:["The average pattern over many years","Tomorrow's forecast","Only temperature","Only rainfall"],c:0,w:"Climate is the long-term average of weather in a region."},
+{q:"The water cycle step where liquid water becomes vapor is…",o:["Evaporation","Condensation","Precipitation","Collection"],c:0,w:"Evaporation goes up; condensation forms clouds; precipitation falls."},
+{q:"Clouds form when water vapor…",o:["Condenses","Evaporates","Freezes into rock","Melts"],c:0,w:"Condensation: vapor cools and turns back into tiny droplets."},
+{q:"Which planet is closest to the Sun?",o:["Mercury","Venus","Earth","Mars"],c:0,w:"Order: Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, Neptune."},
+{q:"The Moon shines because it…",o:["Reflects the Sun's light","Makes its own light","Burns gas","Is electric"],c:0,w:"Moonlight is reflected sunlight."},
+{q:"Earth's seasons are caused mainly by…",o:["The tilt of Earth's axis","Distance from the Sun","The Moon's phases","Ocean currents"],c:0,w:"Earth's 23.5° tilt points hemispheres toward or away from the Sun."},
+{q:"A day on Earth (24 hours) is caused by…",o:["Earth rotating on its axis","Earth orbiting the Sun","The Moon orbiting Earth","The Sun moving"],c:0,w:"Rotation = day/night. Revolution around the Sun = a year."},
+{q:"Which tool measures air temperature?",o:["Thermometer","Barometer","Anemometer","Rain gauge"],c:0,w:"Barometer = air pressure, anemometer = wind speed, rain gauge = rainfall."},
+{q:"In an experiment, the variable YOU change on purpose is the…",o:["Independent variable","Dependent variable","Control","Conclusion"],c:0,w:"You change the independent variable and measure the dependent variable."},
+{q:"A food chain always starts with energy from…",o:["The Sun","Predators","Water","Soil"],c:0,w:"The Sun powers producers, which feed everything else."},
+{q:"Which biome is hot, dry, and gets very little rain?",o:["Desert","Rainforest","Tundra","Grassland"],c:0,w:"Deserts get under 10 inches of rain a year."},
+{q:"An animal's inherited feature that helps it survive is an…",o:["Adaptation","Accident","Opinion","Instrument"],c:0,w:"Adaptations like a cactus's spines or a polar bear's fur aid survival."},
+{q:"Atoms of a single kind make up an…",o:["Element","Mixture","Solution","Organ"],c:0,w:"An element (like gold or oxygen) is one type of atom only."},
+{q:"Sound travels FASTEST through…",o:["Solids","Gases","Empty space","Cold air only"],c:0,w:"Tightly packed particles pass vibrations quickly — sound can't travel in a vacuum at all."}
+],
+la:[
+{q:"Which word is a NOUN in: 'The dragon guarded its treasure.'",o:["treasure","guarded","its","the"],c:0,w:"A noun names a person, place, thing, or idea — 'dragon' and 'treasure' are nouns."},
+{q:"Which word is the VERB in: 'The wizard cast a powerful spell.'",o:["cast","wizard","powerful","spell"],c:0,w:"The verb is the action — 'cast.' ('Spell' here is a noun.)"},
+{q:"Which word is an ADJECTIVE in: 'The ancient tower creaked loudly.'",o:["ancient","tower","creaked","loudly"],c:0,w:"Adjectives describe nouns ('ancient tower'); 'loudly' is an adverb."},
+{q:"Which word is an ADVERB in: 'She quickly solved the riddle.'",o:["quickly","she","solved","riddle"],c:0,w:"Adverbs describe verbs and often end in -ly: 'quickly solved.'"},
+{q:"'The brave knight' is the ____ of the sentence 'The brave knight charged.'",o:["Subject","Predicate","Object","Adverb"],c:0,w:"The subject is who/what the sentence is about; the predicate is what they do."},
+{q:"Which sentence is written correctly?",o:["They're going to their house over there.","There going to they're house over their.","Their going to there house over they're.","They're going to there house over their."],c:0,w:"They're = they are; their = belonging to them; there = a place."},
+{q:"Choose the correct word: 'The dog wagged ____ tail.'",o:["its","it's","its'","itts"],c:0,w:"Its = belonging to it. It's = it is. No apostrophe for possession here."},
+{q:"'The classroom was a zoo' is an example of…",o:["Metaphor","Simile","Personification","Onomatopoeia"],c:0,w:"A metaphor compares WITHOUT like or as. A simile would say 'like a zoo.'"},
+{q:"'She ran as fast as a cheetah' is a…",o:["Simile","Metaphor","Hyperbole","Idiom"],c:0,w:"Similes compare using 'like' or 'as.'"},
+{q:"'The wind whispered through the trees' is…",o:["Personification","Simile","Alliteration","Hyperbole"],c:0,w:"Personification gives human actions (whispering) to non-human things."},
+{q:"'I've told you a MILLION times!' is…",o:["Hyperbole","Metaphor","Personification","Simile"],c:0,w:"Hyperbole is extreme exaggeration for effect."},
+{q:"'Buzz,' 'crash,' and 'pop' are examples of…",o:["Onomatopoeia","Alliteration","Rhyme","Idiom"],c:0,w:"Onomatopoeia = words that sound like the sound they name."},
+{q:"'Sally sold seven seashells' uses…",o:["Alliteration","Onomatopoeia","Metaphor","Hyperbole"],c:0,w:"Alliteration repeats the same starting sound."},
+{q:"'It's raining cats and dogs' is an…",o:["Idiom","Simile","Fact","Onomatopoeia"],c:0,w:"An idiom's meaning isn't literal — it just means raining hard."},
+{q:"The prefix 'pre-' means…",o:["Before","After","Against","Again"],c:0,w:"Preview = view BEFORE. 're-' = again, 'anti-' = against."},
+{q:"The prefix 'un-' in 'unhappy' means…",o:["Not","Very","Before","After"],c:0,w:"Un- flips the meaning: not happy."},
+{q:"The suffix '-less' in 'fearless' means…",o:["Without","Full of","Before","One who"],c:0,w:"Fearless = without fear. '-ful' = full of."},
+{q:"A synonym for 'enormous' is…",o:["Gigantic","Tiny","Average","Careful"],c:0,w:"Synonyms share meanings: enormous ≈ gigantic ≈ huge."},
+{q:"An antonym for 'ancient' is…",o:["Modern","Old","Historic","Aged"],c:0,w:"Antonyms are opposites: ancient ↔ modern."},
+{q:"Which is a complete sentence?",o:["The dragon slept on the gold.","Because the dragon slept.","Sleeping on the gold pile.","When the dragon on gold."],c:0,w:"A complete sentence needs a subject AND a verb and a full thought."},
+{q:"Which sentence uses commas correctly?",o:["We packed potions, scrolls, and gems.","We packed potions scrolls, and gems.","We packed, potions, scrolls and gems.","We, packed potions scrolls and gems."],c:0,w:"Use commas between items in a list of three or more."},
+{q:"The plural of 'wolf' is…",o:["Wolves","Wolfs","Wolfes","Wolvies"],c:0,w:"Many f/fe words change to -ves: wolf→wolves, knife→knives."},
+{q:"A story told using 'I' and 'me' is in…",o:["First person","Second person","Third person","No point of view"],c:0,w:"First person = I/me. Third person = he/she/they."},
+{q:"A story told using 'he,' 'she,' and 'they' is in…",o:["Third person","First person","Second person","Past person"],c:0,w:"Third-person narrators are outside the story."},
+{q:"The LESSON a story teaches is its…",o:["Theme","Plot","Setting","Climax"],c:0,w:"Theme = the big idea/lesson. Plot = the events."},
+{q:"The time and place of a story is the…",o:["Setting","Theme","Conflict","Resolution"],c:0,w:"Setting = when and where."},
+{q:"The turning point of highest excitement in a story is the…",o:["Climax","Introduction","Setting","Theme"],c:0,w:"The climax is the peak; the resolution wraps things up."},
+{q:"A book about a kid's real life written by that kid is an…",o:["Autobiography","Biography","Fable","Myth"],c:0,w:"Auto = self. A biography is written by someone else."},
+{q:"A short story that teaches a lesson, often with talking animals, is a…",o:["Fable","Biography","Textbook","Interview"],c:0,w:"Fables (like the Tortoise and the Hare) end with a moral."},
+{q:"Fiction is ____; nonfiction is ____.",o:["Made up; factual","Factual; made up","Always scary; always boring","Poetry; prose"],c:0,w:"Fiction is invented; nonfiction is true information."},
+{q:"Using nearby words to figure out a new word's meaning is using…",o:["Context clues","A rhyme scheme","Alliteration","A moral"],c:0,w:"Context clues are hints in the surrounding sentence."},
+{q:"The MAIN IDEA of a paragraph is…",o:["What it is mostly about","The first word","The longest sentence","A small detail"],c:0,w:"Main idea = the big point; details support it."},
+{q:"Choose the correct homophone: 'I can't ____ for the party!'",o:["wait","weight","waite","wate"],c:0,w:"Wait = to stay; weight = how heavy."},
+{q:"Which sentence is in PAST tense?",o:["The knight defeated the dragon.","The knight defeats the dragon.","The knight will defeat the dragon.","The knight is defeating the dragon."],c:0,w:"'Defeated' already happened. 'Will defeat' is future."},
+{q:"'Their', 'there', and 'they're' are called…",o:["Homophones","Synonyms","Antonyms","Prefixes"],c:0,w:"Homophones sound alike but have different meanings and spellings."},
+{q:"An author writes a persuasive text mainly to…",o:["Convince the reader","Entertain only","List random facts","Confuse the reader"],c:0,w:"Persuade = convince. Inform = teach. Entertain = amuse."}
+]};
+function shuffleMcq(item){
+  /* Fisher-Yates. sort(()=>Math.random()-0.5) looks like a shuffle but isn't:
+     with a 4-item list it left the correct answer in the first slot ~36% of the
+     time instead of 25%. Every question in QBANK has its answer at index 0, so
+     that bias was directly guessable. */
+  const idx=item.o.map((_,i)=>i);
+  for(let i=idx.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [idx[i],idx[j]]=[idx[j],idx[i]];
+  }
+  return {text:item.q, mcq:idx.map(i=>item.o[i]), ans:idx.indexOf(item.c), sol:item.w, setup:null};
+}
+const tier=()=>Math.min(12,(P?P.lvl:1)+((P&&P.rank)?P.rank*2:0)+((typeof B!=='undefined'&&B&&B.tower)?Math.floor(B.towerFloor/3):0));
+function makeProblem(mode,isBoss){
+  const t=tier();
+  const big=x=>+(+x).toFixed(3);
+  const A1=()=>+(ri(11,99+t*40)/10).toFixed(1);                 // tenths, grows with tier
+  const A2=()=>+(ri(101,999+t*900)/100).toFixed(2);             // hundredths, grows
+  const A3=()=>+(ri(1001,9999)/1000).toFixed(3);                // thousandths (high tier)
+  const D2=()=> (t>=6&&Math.random()<0.35)?A3():A2();
+  const cash=()=>+(ri(150,2499+t*1200)/100).toFixed(2);
+  const wantSub=Math.random()<0.4;
+  const wantMD=Math.random()<0.25;
+  let a,b,c,ans,text,label,sol=null,setup=null;
+  if(wantMD&&mode!=="money"&&!isBoss){
+    const d=ri(2,9);
+    if(Math.random()<0.5){
+      a=(mode==="add1")?A1():D2();
+      ans=big(a*d);text=`${fmt(a)} × ${d}`;
+      label="Multiply, then count the decimal places";
+      sol=`${fmt(a)} × ${d}: ignore the point → ${Math.round(a*Math.pow(10,(fmt(a).split(".")[1]||"").length))} × ${d}, then put the point back → ${fmt(ans)}`;
+    } else {
+      const q=(mode==="add1")?A1():D2();
+      a=big(q*d);ans=q;text=`${fmt(a)} ÷ ${d}`;
+      label="Divide — the point stays lined up above";
+      sol=`${d} × ${fmt(q)} = ${fmt(a)}, so ${fmt(a)} ÷ ${d} = ${fmt(q)}`;
+    }
+    return {text,ans,label,sol,setup};
+  }
+  switch(mode){
+    case "add1":
+      a=A1();b=A1();
+      if(isBoss){c=A1();
+        if(wantSub){if(a+b<c)[a,c]=[c,a];ans=big(a+b-c);text=`${fmt(a)} + ${fmt(b)} − ${fmt(c)}`;label="Boss round: add, then subtract!";}
+        else {ans=big(a+b+c);text=`${fmt(a)} + ${fmt(b)} + ${fmt(c)}`;label="Boss round: three numbers!";}}
+      else if(wantSub){if(a<b)[a,b]=[b,a];ans=big(a-b);text=`${fmt(a)} − ${fmt(b)}`;label="Line up the points, then subtract";sol=worked(a,b,"−",ans);setup=setupOnly(a,b,"−");}
+      else{ans=big(a+b);text=`${fmt(a)} + ${fmt(b)}`;label="Line up the decimal points";sol=worked(a,b,"+",ans);setup=setupOnly(a,b,"+");}
+      break;
+    case "add2":
+      a=D2();b=Math.random()<.5?A1():D2();
+      if(wantSub){if(a<b)[a,b]=[b,a];ans=big(a-b);text=`${fmt(a)} − ${fmt(b)}`;label="Add zeros to match, then subtract";sol=worked(a,b,"−",ans);setup=setupOnly(a,b,"−");}
+      else{ans=big(a+b);text=`${fmt(a)} + ${fmt(b)}`;label="Add zeros so places match";sol=worked(a,b,"+",ans);setup=setupOnly(a,b,"+");}
+      break;
+    case "sub1":
+      a=D2();b=D2(); if(a<b)[a,b]=[b,a];
+      if(isBoss||(t>=4&&Math.random()<0.4)){a=ri(20,60+t*10);}
+      if(b>=a){b=+(ri(101,Math.floor(a*100)-1)/100).toFixed(2);}
+      ans=big(a-b);text=`${fmt(a)} − ${fmt(b)}`;
+      label=Number.isInteger(a)?`Hidden point: ${a} = ${a}.00`:"Borrow carefully";
+      sol=worked(a,b,"−",ans);setup=setupOnly(a,b,"−");
+      break;
+    case "money":{
+      const k=ri(0,t>=5?3:2);
+      if(k===0){a=cash();b=cash();ans=+(a+b).toFixed(2);text=`Potions cost ${fmt$(a)} and ${fmt$(b)}. Total?`;label="Answer like 12.75";sol=worked(a,b,"+",ans);setup=setupOnly(a,b,"+");}
+      else if(k===1){a=ri(10,50+t*10);b=cash();while(b>=a)b=cash();ans=+(a-b).toFixed(2);text=`Pay ${fmt$(a)} for a ${fmt$(b)} wand. Change?`;label="Answer like 3.25";sol=worked(a,b,"−",ans);setup=setupOnly(a,b,"−");}
+      else if(k===2){a=cash();b=cash();ans=+(a+b).toFixed(2);text=`Pouch: ${fmt$(a)}. You earn ${fmt$(b)}. New total?`;label="Answer like 20.50";sol=worked(a,b,"+",ans);setup=setupOnly(a,b,"+");}
+      else {a=cash();b=cash();c=ri(40,60+t*15);while(a+b>=c){a=cash();b=cash();}ans=+(c-a-b).toFixed(2);text=`You buy loot for ${fmt$(a)} and ${fmt$(b)}, paying with ${fmt$(c)}. Change?`;label="Add first, then subtract";}
+      break;}
+    case "mixed":{
+      const k=ri(0,2);
+      if(k===0){a=D2();b=D2();c=A1();if(a+b<c)[a,c]=[c,a];ans=big(a+b-c);text=`${fmt(a)} + ${fmt(b)} − ${fmt(c)}`;label="Two steps, left to right";}
+      else if(k===1){a=ri(10,40+t*10);b=D2();if(b>=a){b=+(ri(101,Math.floor(a*100)-1)/100).toFixed(2);}ans=big(a-b);text=`${fmt(a)} − ${fmt(b)}`;label="Borrow across the zeros";sol=worked(a,b,"−",ans);setup=setupOnly(a,b,"−");}
+      else{a=D2();b=D2();ans=big(a+b);text=`${fmt(a)} + ${fmt(b)}`;label="Line up and add";sol=worked(a,b,"+",ans);setup=setupOnly(a,b,"+");}
+      break;}
+  }
+  return {text,ans,label,sol,setup};
+}
+
+/* ---------- Memory Magic: grades 3–5 review ---------- */
+function makeReview(){
+  const g=ri(3,5);
+  let text,ans,label,sol=null,setup=null;
+  if(g===3){
+    const k=ri(0,4);
+    if(k===0){const a=ri(3,9),b=ri(3,9);ans=a*b;text=`${a} × ${b}`;sol=`${a} × ${b} = ${ans}`;}
+    else if(k===1){const a=ri(3,9),b=ri(3,9);ans=b;text=`${a*b} ÷ ${a}`;sol=`${a} × ${b} = ${a*b}, so ${a*b} ÷ ${a} = ${b}`;}
+    else if(k===2){const n=ri(14,487);ans=Math.round(n/10)*10;text=`Round ${n} to the nearest ten`;sol=`Look at the ones digit (${n%10}): ${n%10>=5?"5 or more rounds UP":"4 or less rounds DOWN"} → ${ans}`;}
+    else if(k===3){const l=ri(3,12),w=ri(2,9);ans=2*(l+w);text=`A rectangle is ${l} cm long and ${w} cm wide. What is its perimeter?`;sol=`${l} + ${w} + ${l} + ${w} = ${ans} cm (or 2 × (${l}+${w}))`;}
+    else {const a=ri(300,900),b=ri(120,290);ans=a-b;text=`${a} − ${b}`;sol=`${a} − ${b} = ${ans}`;}
+    label="🕰️ Memory Magic — 3rd grade!";
+  } else if(g===4){
+    const k=ri(0,4);
+    if(k===0){const a=ri(120,450),b=ri(3,9);ans=a*b;text=`${a} × ${b}`;sol=`${a} × ${b} = ${ans} (break it up: ${Math.floor(a/100)*100}×${b} + ${a-Math.floor(a/100)*100}×${b})`;}
+    else if(k===1){const q=ri(12,98),d=ri(3,9);ans=q;text=`${q*d} ÷ ${d}`;sol=`${d} × ${q} = ${q*d}, so the answer is ${q}`;}
+    else if(k===2){const n=ri(1,3),d=ri(2,5),m=ri(2,4);ans=n*m;text=`Equivalent fractions: ${n}/${d} = ?/${d*m}`;sol=`The bottom was multiplied by ${m}, so multiply the top too: ${n} × ${m} = ${ans}`;}
+    else if(k===3){const n=ri(1500,9850);ans=Math.round(n/100)*100;text=`Round ${n.toLocaleString()} to the nearest hundred`;sol=`Look at the tens digit → ${ans.toLocaleString()}`;}
+    else {const num=ri(1000,9999);const places=["ones","tens","hundreds","thousands"];const pi=ri(1,3);ans=Math.floor(num/Math.pow(10,pi))%10;text=`In ${num.toLocaleString()}, which digit is in the ${places[pi]} place?`;sol=`${num.toLocaleString()} → the ${places[pi]} digit is ${ans}`;}
+    label="🕰️ Memory Magic — 4th grade!";
+  } else {
+    const k=ri(0,4);
+    if(k===0){const d=[4,5,8,10][ri(0,3)];const a=ri(1,d-2),b=ri(1,d-1-a);ans=(a+b)/d;text=`${a}/${d} + ${b}/${d}  (answer as a fraction)`;sol=`Same-size pieces — just add the tops: ${a+b}/${d}`;}
+    else if(k===1){const pairs=[[2,18],[2,24],[4,24],[4,36],[5,35],[3,27],[5,40]];const [dn,whole]=pairs[ri(0,pairs.length-1)];ans=whole/dn;text=`What is 1/${dn} of ${whole}?`;sol=`1/${dn} of ${whole} means ${whole} ÷ ${dn} = ${ans}`;}
+    else if(k===2){const a=r1();const p=[10,100][ri(0,1)];ans=+(a*p).toFixed(2);text=`${fmt(a)} × ${p}`;sol=`Multiplying by ${p} hops the decimal ${p===10?"1 place":"2 places"} right → ${fmt(ans)}`;}
+    else if(k===3){const a=ri(2,9),b=ri(2,9),c=ri(2,9);ans=a+b*c;text=`${a} + ${b} × ${c}`;sol=`Multiply FIRST: ${b} × ${c} = ${b*c}, then ${a} + ${b*c} = ${ans}`;}
+    else {const l=ri(2,6),w=ri(2,5),h=ri(2,4);ans=l*w*h;text=`A box is ${l} × ${w} × ${h}. What is its volume?`;sol=`Volume = length × width × height = ${ans} cubic units`;}
+    label="🕰️ Memory Magic — 5th grade!";
+  }
+  return {text,ans,label,sol,setup,review:true};
+}
+function pickProblem(mode,isBoss){
+  const subj=(P&&P.subjects)||"math";
+  if(subj!=="math" && !isBoss && Math.random()<0.32){
+    let pool;
+    if(subj==="sci")pool=QBANK.sci;
+    else if(subj==="la")pool=QBANK.la;
+    else pool=Math.random()<0.5?QBANK.sci:QBANK.la;
+    const item=pool[ri(0,pool.length-1)];
+    const p=shuffleMcq(item);
+    p.label=pool===QBANK.sci?"🔬 Science Scroll!":"📖 Word Wizardry!";
+    return p;
+  }
+  if(!isBoss && Math.random()<0.18) return makeReview();
+  return makeProblem(mode,isBoss);
+}
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function parseAnswer(raw){
+  raw=String(raw).trim().replace(/[$\s]/g,"");
+  /* A comma can mean two different things. "1,234.56" uses it to group
+     thousands, "12,50" uses it as the decimal point. Deciding by whether a
+     period is also present stops a correct "1,234.56" being read as 1.234. */
+  if(raw.indexOf(".")>=0 || /^-?\d{1,3}(,\d{3})+$/.test(raw)) raw=raw.replace(/,/g,"");
+  else raw=raw.replace(",",".");
+  if(/^-?\d+\s*\/\s*\d+$/.test(raw)){const [n,d]=raw.split("/").map(x=>parseFloat(x));return d?n/d:NaN;}
+  return parseFloat(raw);
+}
+
+function hud(){
+  if(!P){document.getElementById("hud").style.display="none";return;}
+  document.getElementById("hud").style.display="flex";
+  document.getElementById("hAv").textContent=ELEMENTS[P.el].orb;
+  document.getElementById("hName").textContent=P.name;
+  document.getElementById("hLvl").textContent="Lv "+P.lvl+(P.rank?" ✦R"+(P.rank+1):"");
+  document.getElementById("hGold").textContent="🪙 "+P.gold.toFixed(2);
+  document.getElementById("hGear").textContent=SWORDS[P.sword].em+(SHIELDS[P.shield].em||"");
+  document.getElementById("hPets").innerHTML=P.pets.map(p=>mobFace(p)).join(" ");
+  const cur=P.xp-xpCap(P.lvl-1), need=xpCap(P.lvl)-xpCap(P.lvl-1);
+  document.getElementById("hXp").style.width=Math.min(100,100*cur/need)+"%";
+  cloudDot(); scheduleSave();
+}
+const screen=document.getElementById("screen");
+
+/* ---------- title & character ---------- */
+function titleScreen(){
+  P=null; hud();
+  screen.innerHTML=`
+    <img class="zonehero" src="${ART.splash}" alt="" style="max-width:540px">
+    <h1>Spellbound</h1>
+    <h2>The Dragon's Ledger</h2>
+    <p class="story">Pyra the Dragon keeps a magic ledger of every coin, crystal, and treasure in the Kingdom — and she has stolen them all.
+    Master the magic of <b>adding & subtracting decimals</b> to balance the ledger and win everything back.</p>
+    <p class="story">New: 🏪 Beedle's Bazaar • ⚔️ swords & shields • ❤️ heart containers • 🧪 potions • 🗝️ boss keys • 📦 treasure chests</p>
+    <p class="story">⚡ Watch for <b>🕰️ Memory Magic</b> — surprise questions from 3rd, 4th, and 5th grade. Nail one for a massive damage CRIT!</p>
+    <button class="goldb" onclick="charSelect()">Create your wizard</button>
+    ${BACKEND_URL?`<button class="purple" onclick="continueScreen()">☁️ Continue adventure</button>`:""}`;
+}
+async function continueScreen(msg){
+  screen.innerHTML=`
+    <div class="big">☁️</div>
+    <h2>Choose your wizard</h2>
+    <p class="story">${msg||"Fetching the heroes of the realm..."}</p>`;
+  try{
+    const res=await listWizards();
+    if(!res.ok||!res.wizards||!res.wizards.length){
+      screen.innerHTML=`
+        <div class="big">☁️</div>
+        <h2>Choose your wizard</h2>
+        <p class="story">No saved wizards yet — create one and the cloud will remember it!</p>
+        <button class="goldb" onclick="charSelect()">Create a wizard</button>
+        <button class="purple" onclick="titleScreen()">Back</button>`;
+      return;
+    }
+    const tiles=res.wizards.map(w=>{
+      const orb=ELEMENTS[w.el]?ELEMENTS[w.el].orb:"🧙";
+      /* The name rides in a data attribute rather than inside the onclick
+         string: quotes and angle brackets in a wizard name then can't break
+         the markup or the handler. */
+      return `<div class="zone" data-wizard="${esc(w.name)}" onclick="doContinue(this.dataset.wizard)">
+        <span class="em">${orb}</span>
+        <span><b>${esc(w.name)}</b><small>Level ${w.level||1} • 🪙 ${(+w.gold||0).toFixed(2)}</small></span>
+        <span class="stars">▶</span>
+      </div>`;
+    }).join("");
+    screen.innerHTML=`
+      <div class="big">☁️</div>
+      <h2>Choose your wizard</h2>
+      ${tiles}
+      <button class="purple" onclick="titleScreen()">Back</button>`;
+  }catch(e){
+    screen.innerHTML=`
+      <div class="big">⚠️</div>
+      <h2>Choose your wizard</h2>
+      <p class="story">Couldn't reach the cloud — check the internet and try again.</p>
+      <button class="goldb" onclick="continueScreen()">Retry</button>
+      <button class="purple" onclick="titleScreen()">Back</button>`;
+  }
+}
+async function doContinue(nm){
+  screen.innerHTML=`<div class="big">✨</div><h2>Summoning ${esc(nm)}...</h2>`;
+  try{
+    const res=await loadGame(nm);
+    if(!res.ok)return continueScreen("That wizard slipped away — try another!");
+    P=normalizeSave(res.data);
+    _cloudState="☁️"; hud();
+    mapScreen(`Welcome back, ${esc(P.name)} the ${ELEMENTS[P.el].name} Wizard! Your legend continues.`);
+  }catch(e){continueScreen("Couldn't reach the cloud — try again.");}
+}
+function charSelect(){
+  screen.innerHTML=`
+    <h2>Choose your magic</h2>
+    <div class="pickrow">
+      ${Object.entries(ELEMENTS).map(([k,e])=>`
+        <div class="pick" id="pick-${k}" onclick="pickEl('${k}')">
+          <img src="${ART['hero_'+k]}" style="height:96px;border-radius:12px" alt=""><small>${e.orb} ${e.name}</small><small style="font-weight:400;font-size:11px;color:#6b6390">${e.sig}</small>
+        </div>`).join("")}
+    </div>
+    <p class="story" style="margin-top:2px">Name your wizard:</p>
+    <input type="text" id="wname" maxlength="14" placeholder="Sir Mathalot">
+    ${BACKEND_URL?`<p class="story" style="margin-top:8px;font-size:15px;color:#6b6390">☁️ Adventures save to the cloud automatically under your wizard's name.</p>`:""}
+    <br><button class="goldb" onclick="startGame()">Begin adventure</button>`;
+  window._el="fire"; pickEl("fire");
+}
+function pickEl(k){
+  window._el=k;
+  document.querySelectorAll(".pick").forEach(d=>d.classList.remove("sel"));
+  document.getElementById("pick-"+k).classList.add("sel");
+}
+function startGame(){
+  const nm=(document.getElementById("wname").value.trim()||"Sir Mathalot").slice(0,14);
+  P=makeDefaultP(nm, window._el);
+  const starters=["fire","water","leaf","storm"].filter(k=>k!==P.el);
+  const sg=starters[ri(0,starters.length-1)];
+  P.gems[sg]=1;
+  hud(); mapScreen(`Welcome, ${nm} the ${ELEMENTS[P.el].name} Wizard! You command ${P.el.toUpperCase()} magic alone — but Grandma tucked a ${GEMS[sg].em} ${GEMS[sg].name} in your pack so you can borrow other powers. Grandma packed you a 🧪 potion, a 📜 hint scroll, and 15 gold. Spend it wisely at Beedle's Bazaar!`);
+}
+
+/* ---------- map & shop ---------- */
+function mapScreen(note){
+  P.hp=P.hpMax; hud();
+  screen.innerHTML=`
+    <img class="zonehero" src="${ART.worldmap}" alt="" style="max-width:520px">
+    <h2>🗺️ Realm Map</h2>
+    ${note?`<p class="story">${note}</p>`:""}
+    ${ZONES.map((z,i)=>{
+      const locked=i>P.zone;
+      const stars="⭐".repeat(P.stars[i])+"☆".repeat(3-P.stars[i]);
+      return `<div class="zone ${locked?'locked':''}" onclick="${locked?'':'enterZone('+i+')'}">
+        <span class="em">${z.em}</span>
+        <span><b>${z.name}</b><small>${z.desc}</small></span>
+        <span class="stars">${locked?"🔒":stars}</span>
+      </div>`;}).join("")}
+    <button class="goldb" onclick="shop('','map')">🏪 Beedle's Bazaar</button>
+    <button class="purple" onclick="teamScreen()">🐾 My Team${P.pets.length?" ("+P.pets.length+")":""}</button>
+    <button class="purple" onclick="wardrobe()">🧥 Wardrobe</button>
+    <button class="purple" onclick="cycleSubjects()">${({math:"📚 Subjects: Math",sci:"📚 Math + 🔬 Science",la:"📚 Math + 📖 Language Arts",all:"📚 All Subjects 🌟"})[(P.subjects||"math")]}</button>
+    <button class="purple" onclick="towerIntro()">🗼 Endless Tower${P.towerBest?" — best: floor "+P.towerBest:""}</button>
+    <p class="story" style="font-size:15px;color:#6b6390">Health refills between realms. Earn ⭐ by clearing realms — 3 for a perfect run!</p>`;
+}
+
+let _shopRet="map";
+function cycleSubjects(){
+  const order=["math","sci","la","all"];
+  P.subjects=order[(order.indexOf(P.subjects||"math")+1)%order.length];
+  mapScreen(({math:"📚 Battles are pure MATH.",sci:"🔬 Science Scrolls now appear in battles!",la:"📖 Word Wizardry now appears in battles!",all:"🌟 All subjects mixed — the full scholar's gauntlet!"})[P.subjects]);
+}
+function wardrobe(){
+  hud();
+  const tiles=Object.entries(OUTFITS).map(([k,o])=>{
+    const un=o.un();
+    const worn=(P.outfit||P.el)===k||(!P.outfit&&k===P.el);
+    return `<div class="pick ${worn?'sel':''}" style="${un?'':'filter:grayscale(1);opacity:.55'}" onclick="${un?`wearOutfit('${k}')`:''}">
+      <img src="${ART[o.art]}" style="height:110px;border-radius:12px" alt="">
+      <small>${o.name}${worn?" ✓":""}</small>
+      <small style="font-weight:400;font-size:10px;color:#6b6390">${un?(worn?"equipped":"tap to wear"):"🔒 "+o.how}</small>
+    </div>`;
+  }).join("");
+  screen.innerHTML=`<h2>🧥 Wardrobe</h2>
+    <p class="story">New robes are earned by great deeds. Style only — your magic stays ${P.el.toUpperCase()}.</p>
+    <div class="pickrow">${tiles}</div>
+    <button class="purple" onclick="mapScreen()">Back to map</button>`;
+}
+function wearOutfit(k){ P.outfit=k; wardrobe(); }
+function teamScreen(){
+  hud();
+  const rows=P.pets.length?P.pets.map(p=>{
+    const st=petStage(p);
+    const need=st===0?8-(p[2]||0):st===1?20-(p[2]||0):0;
+    return `<div class="shopitem">${mobFace(p,"petface")}<span style="margin-left:8px"><b>${p[0]}</b> — Stage ${st+1}${st<2?`<small>${p[2]||0} wins • ${need} more to evolve</small>`:`<small>FINAL FORM ✨</small>`}<small>${PET_ABIL[p[0]]?PET_ABIL[p[0]].d(st):""}</small></span></div>`;
+  }).join(""):`<p class="story">No pets yet — impress creatures in battle with your decimal magic and they may join you!</p>`;
+  screen.innerHTML=`<h2>🐾 Your Team</h2>${rows}<button class="purple" onclick="mapScreen()">Back to map</button>`;
+}
+function shop(msg,ret){
+  if(ret)_shopRet=ret; if(!msg&&!ret&&_shopRet!=="run")_shopRet="map";
+  hud();
+  const rows=[];
+  rows.push(shopRow(ic('potion',44),"Health Potion","Heal 40 ❤️ mid-battle. You carry them with you.",8.50,`buyItem('potion',8.50)`,`x${P.potions} owned`));
+  rows.push(shopRow(ic('scroll',44),"Hint Scroll","Shows the problem lined up — you finish it.",5.25,`buyItem('scroll',5.25)`,`x${P.scrolls} owned`));
+  rows.push(shopRow(ic('heart',44),"Heart Container","+20 max health. Forever. Very Hero-like.",25.00,`buyItem('heart',25.00)`,`${P.hearts} bought`));
+  if(P.sword<2){const s=SWORDS[P.sword+1];rows.push(shopRow(ic('sword',44),s.n,`+${s.b} damage on every spell.`,s.cost,`buyItem('sword',${s.cost})`,SWORDS[P.sword].em+" equipped"));}
+  else rows.push(shopRow(ic('sword',44),"Master Sword","The blade of legend.",null,null,"MAX — equipped!"));
+  if(P.shield<2){const s=SHIELDS[P.shield+1];rows.push(shopRow(ic('shield',44),s.n,`Blocks ${s.r} damage from every enemy hit.`,s.cost,`buyItem('shield',${s.cost})`,P.shield?SHIELDS[P.shield].em+" equipped":"none equipped"));}
+  else rows.push(shopRow(ic('shield',44),"Mirror Shield","Shining and unbreakable.",null,null,"MAX — equipped!"));
+  if(!(P.wardrobe&&P.wardrobe.ranger))rows.push(shopRow(`<img src="${ART.o_ranger}" style="height:44px;border-radius:8px">`,"Adventurer's Garb","A rugged new look for the Wardrobe. Style only.",30.00,`buyItem('outfit_ranger',30)`,"not owned"));
+  for(const k of Object.keys(GEMS)){
+    if(k===P.el)continue;
+    const g=GEMS[k];
+    rows.push(shopRow(`<span style="font-size:34px">${g.em}</span>`,g.name,`Borrow ${k.toUpperCase()} magic for ${GEM_BATTLES} battles. Activate it in battle.`,g.cost,`buyItem('gem_${k}',${g.cost})`,`x${P.gems[k]||0} owned`));
+  }
+  screen.innerHTML=`
+    <div class="big">🧑‍🌾</div>
+    <h2>Beedle's Bazaar</h2>
+    <p class="story">"Ooh-hoo! A customer! Your pouch holds <b style="color:#a4780a">🪙 ${P.gold.toFixed(2)}</b>."</p>
+    ${msg?`<p class="story good">${msg}</p>`:""}
+    ${rows.join("")}
+    <button class="purple" onclick="shopBack()">${_shopRet==="run"?"⬅️ Back to your quest":"Back to map"}</button>`;
+}
+function shopBack(){
+  if(_shopRet==="run"&&B){
+    _shopRet="map";
+    const bossNext=B.stage===3;
+    screen.innerHTML=`
+      <div class="big">${ZONES[B.zone].em}</div>
+      <h2>Back to ${ZONES[B.zone].name}!</h2>
+      <p class="story">Your progress is safe — ${bossNext?"the sealed boss door awaits.":`battle ${B.stage+1} of 3 is next.`}</p>
+      <button onclick="nextBattle()">${bossNext?"Find the Boss Key 🗝️":"Continue ➜"}</button>`;
+    return;
+  }
+  _shopRet="map"; mapScreen();
+}
+function shopRow(em,name,desc,cost,fn,owned){
+  const afford=cost!==null && P.gold>=cost-1e-9;
+  return `<div class="shopitem">
+    <span class="em">${em}</span>
+    <span><b>${name}</b><small>${desc}</small><span class="owned">${owned}</span></span>
+    <span class="buy">${cost===null?"":`<div class="price">🪙 ${cost.toFixed(2)}</div>
+      <button ${afford?"":"disabled"} onclick="${fn}">Buy</button>`}</span>
+  </div>`;
+}
+function buyItem(kind,cost){
+  if(P.gold<cost-1e-9)return;
+  P.gold=+(P.gold-cost).toFixed(2);
+  let m="";
+  if(kind==='potion'){P.potions++;m="Potion added to your pack! 🧪";}
+  if(kind==='scroll'){P.scrolls++;m="Hint scroll tucked in your robe. 📜";}
+  if(kind==='heart'){P.hearts++;P.hpMax+=20;P.hp=P.hpMax;m="You feel stronger! Max health is now "+P.hpMax+". ❤️";}
+  if(kind==='sword'){P.sword++;m=SWORDS[P.sword].n+" equipped! +"+SWORDS[P.sword].b+" damage. "+SWORDS[P.sword].em;}
+  if(kind==='shield'){P.shield++;m=SHIELDS[P.shield].n+" equipped! Blocks "+SHIELDS[P.shield].r+" damage. "+SHIELDS[P.shield].em;}
+  if(kind==='outfit_ranger'){P.wardrobe.ranger=true;m="Adventurer's Garb hung in your Wardrobe! 🧥";}
+  if(kind.startsWith('gem_')){const k=kind.slice(4);P.gems[k]=(P.gems[k]||0)+1;m=GEMS[k].em+" "+GEMS[k].name+" added to your pack! Activate it in any battle.";}
+  shop(m);
+}
+
+/* ---------- zone flow: 3 mobs -> key trial -> boss ---------- */
+function towerIntro(){
+  screen.innerHTML=`
+    <div class="big">🗼</div>
+    <h2>The Endless Tower</h2>
+    <p class="story">Climb as high as you can! One monster per floor, tougher and trickier as you rise. Your health does NOT refill between floors (+12 ❤️ per floor climbed). Fall, and the run ends — but you keep every coin.</p>
+    <p class="story">Every 5th floor: a floor boss and a 💎 gem reward. ${P.towerBest?`Your record: <b>floor ${P.towerBest}</b>.`:"Set your first record!"}</p>
+    <button class="goldb" onclick="towerStart()">Begin the climb</button>
+    <button class="purple" onclick="mapScreen()">Back to map</button>`;
+}
+function towerStart(){
+  P.hp=P.hpMax;
+  B={tower:true, towerFloor:1, zone:ri(0,4), stage:0, hasKey:true, perfect:true};
+  towerBattle();
+}
+function towerBattle(){
+  B.zone=ri(0,4);
+  B.isBoss=B.towerFloor%5===0;
+  const pool=[];
+  for(const z of ZONES){pool.push(...z.mobs);}
+  B.m=B.isBoss?ZONES[B.zone].boss:pool[ri(0,pool.length-1)];
+  B.mhpMax=Math.round((30+B.towerFloor*8)*(B.isBoss?1.5:1)*(1+0.2*(P.rank||0)));
+  B.mhp=B.mhpMax;
+  B.towerMode=["add1","add2","sub1","money","mixed"][ri(0,4)];
+  B.burn=null;B.stun=0;B.freeze=0;B.cd={};B.featherUsed=false;
+  B.resolving=false;B.resolved=false;
+  const rg=petPerk("regen"); if(rg)P.hp=Math.min(P.hpMax,P.hp+rg);
+  drawBattle(`🗼 Floor ${B.towerFloor}${B.isBoss?" — FLOOR BOSS!":""} — ${B.m[0]} blocks the stairs!`);
+}
+function towerNext(){
+  P.towerBest=Math.max(P.towerBest||0,B.towerFloor);
+  const gemNote=B.isBoss?(()=>{const ks=Object.keys(GEMS).filter(k=>k!==P.el);const gk=ks[ri(0,ks.length-1)];P.gems[gk]=(P.gems[gk]||0)+1;return `<p class="story good">💎 Floor boss bonus: a ${GEMS[gk].em} ${GEMS[gk].name}!</p>`;})():"";
+  B.towerFloor++;
+  P.hp=Math.min(P.hpMax,P.hp+12); hud();
+  screen.innerHTML=`
+    <div class="big">🗼</div>
+    <h2>Floor ${B.towerFloor-1} cleared!</h2>
+    ${gemNote}
+    <p class="story">+12 ❤️ as you climb. The stairs spiral upward...</p>
+    <button class="goldb" onclick="towerBattle()">Floor ${B.towerFloor} ➜</button>
+    <button class="purple" onclick="towerLeave()">Climb down (keep everything)</button>`;
+}
+function towerLeave(){
+  const f=B.towerFloor-1;
+  B=null;
+  mapScreen(`🗼 You climbed ${f} floor${f===1?"":"s"} of the Endless Tower! Record: floor ${P.towerBest}.`);
+}
+function enterZone(i){
+  B={zone:i, stage:0, perfect:true, hasKey:false};
+  const z=ZONES[i];
+  screen.innerHTML=`
+    ${BGS[i]?`<img class="zonehero" src="${BGS[i]}" alt="">`:`<div class="big">${z.em}</div>`}
+    <h2>${z.name}</h2>
+    <p class="story">${z.desc}. Defeat three creatures, find the 🗝️ Boss Key, then challenge the realm boss for its Number Crystal!</p>
+    <button onclick="nextBattle()">Head in!</button>`;
+}
+function nextBattle(){
+  const z=ZONES[B.zone];
+  if(B.stage===3 && !B.hasKey) return keyTrial();
+  B.stage=Math.min(B.stage,3);
+  B.isBoss=B.stage===3;
+  const m=B.isBoss?z.boss:z.mobs[Math.min(B.stage,2)];
+  B.m=m;
+  B.mhpMax=Math.round(z.mhp*(B.isBoss?1.6:1)*(1+0.3*(P.rank||0)));
+  B.mhp=B.mhpMax;
+  B.burn=null; B.stun=0; B.freeze=0; B.cd={}; B.featherUsed=false;
+  B.resolving=false; B.resolved=false;
+  const rg=petPerk("regen"); if(rg){P.hp=Math.min(P.hpMax,P.hp+rg);}
+  drawBattle(`${B.isBoss?"⭐ BOSS BATTLE! ":""}A wild ${m[0]} appears!`);
+}
+
+/* ---------- boss key trial (Zelda dungeon puzzle) ---------- */
+function keyTrial(prog=0,note=""){
+  const z=ZONES[B.zone];
+  if(prog===3){
+    B.hasKey=true;
+    screen.innerHTML=`
+      <div class="burst" style="margin:8px 0">${ic('key',110)}</div>
+      <h2>You found the Boss Key!</h2>
+      <p class="story">The great door rumbles open. The ${z.boss[0]} waits inside...</p>
+      <button class="goldb" onclick="nextBattle()">Enter the boss door ⭐</button>`;
+    return;
+  }
+  const prob=makeProblem(z.mode,false);
+  B.prob=prob;
+  screen.innerHTML=`
+    <div class="big">🚪🔒</div>
+    <h2>The Sealed Boss Door</h2>
+    <p class="story">Three runes lock this door. Answer <b>3 in a row</b> to forge the Boss Key. A miss resets the runes — but costs nothing. Take your time!</p>
+    <div class="keytrack">${"🔶".repeat(prog)}${"◇".repeat(3-prog)}</div>
+    <div class="qbox">
+      <div class="qlabel">${prob.label}</div>
+      <div class="qtext">${prob.text} = ?</div>
+      <input type="text" id="ans" inputmode="decimal" autocomplete="off" placeholder="?">
+    </div>
+    <button class="purple" onclick="keyCheck(${prog})">Carve the rune</button>
+    <div class="msg" id="msg">${note}</div>`;
+  document.getElementById("ans").focus();
+}
+function keyCheck(prog){
+  const raw=document.getElementById("ans").value;
+  if(raw.trim()==="")return;
+  const val=parseAnswer(raw);
+  const ok=!isNaN(val)&&Math.abs(val-B.prob.ans)<0.0005;
+  if(ok){P.solved++; keyTrial(prog+1,`<span class="good">The rune glows! ${2-prog>0?(2-prog)+" to go.":""}</span>`);}
+  else{P.missed++; B.perfect=false;
+    const sol=B.prob.sol?`<br><span class="worked">${B.prob.sol}</span>`:`<br><b>Answer: ${fmt(B.prob.ans)}</b>`;
+    keyTrial(0,`<span class="bad">The runes fade... study this and start fresh:</span>${sol}`);}
+}
+
+/* ---------- battle ---------- */
+function drawBattle(note){
+  hud();
+  const z=ZONES[B.zone];
+  B.cd=B.cd||{};
+  for(const k in B.cd){if(B.cd[k]>0)B.cd[k]--;}
+  const prob=pickProblem(B.tower?B.towerMode:z.mode,B.isBoss);
+  B.prob=prob; B.scrollUsed=false;
+  const canUse=sp=>sp.el===P.el||((P.activeGems[sp.el]||0)>0);
+  const spells=SPELLS.filter(sp=>(sp.el===P.el&&sp.lvl<=P.lvl+1)||(canUse(sp)&&sp.el!==P.el&&sp.lvl<=P.lvl)).map((s)=>{
+    const idx=SPELLS.indexOf(s);
+    const locked=P.lvl<s.lvl;
+    const cdLeft=B.cd[idx]||0;
+    const usable=!locked&&cdLeft<=0;
+    const gemTag=s.el!==P.el?` ${GEMS[s.el].em}`:"";
+    let sub;
+    if(locked)sub='unlocks at Lv '+s.lvl;
+    else if(cdLeft>0)sub='⏳ recharging: '+cdLeft+' turn'+(cdLeft>1?'s':'');
+    else sub='dmg '+s.dmg[0]+'–'+s.dmg[1]+' • '+s.fxText+(s.cd?' • recharge '+s.cd:'');
+    return `<div class="spell ${usable?'':'lock'}" onclick="${usable?`cast(${idx})`:''}">
+      ${fxImg(s.fx)||s.icon} ${s.name}${gemTag}<small>${sub}</small></div>`;
+  }).join("");
+  const gemChips=Object.keys(GEMS).filter(k=>k!==P.el&&((P.gems[k]||0)>0)&&!((P.activeGems[k]||0)>0)).map(k=>
+    `<span class="item" onclick="activateGem('${k}')">${GEMS[k].em} Activate ${GEMS[k].name} (x${P.gems[k]})</span>`).join("");
+  const gemStatus=Object.keys(P.activeGems).filter(k=>P.activeGems[k]>0).map(k=>
+    `${GEMS[k].em} ${GEMS[k].name}: ${P.activeGems[k]} battle${P.activeGems[k]>1?"s":""} left`).join(" • ");
+  screen.innerHTML=`
+    <div id="arena" ${BGS[B.zone]?`class="stage" style="background-image:url('${BGS[B.zone]}')"`:""}>
+      <div class="fighter">
+        <div class="fname">${P.name} ${ELEMENTS[P.el].orb}${SWORDS[P.sword].em}${SHIELDS[P.shield].em||""}</div>
+        <img class="sprite" id="pSpr" src="${heroImg()}" alt="wizard">
+        <div class="hpbar ${P.hp<=P.hpMax*.3?'low':''}"><div style="width:${100*P.hp/P.hpMax}%"></div></div>
+        <div class="hptext">${P.hp}/${P.hpMax}</div>
+      </div>
+      <div id="fx"></div>
+      <div class="fighter" style="text-align:right">
+        <div class="fname">${B.m[0]} <span style="font-size:14px">${B.burn?"🔥"+B.burn.rounds:""}${B.freeze?" ❄️"+B.freeze:""}${B.stun?" ⚡stunned":""}</span></div>
+        <div class="mwrap">
+          ${B.isBoss&&B.zone===4?`<img class="sprite ${B.burn?'burning':''}${B.freeze?' frozen':''}" id="mSpr" src="${PYRA_IMG}" alt="Pyra">`:(mobArt(B.m)?`<img class="sprite ${B.burn?'burning':''}${B.freeze?' frozen':''}" id="mSpr" src="${mobArt(B.m)}" alt="">`:`<div class="sprite ${B.burn?'burning':''}${B.freeze?' frozen':''}" id="mSpr">${B.m[1]}</div>`)}
+          ${B.freeze?`<div class="freezeveil"></div><span class="statusfx" style="top:-10px;right:-8px">❄️</span><span class="statusfx" style="bottom:-4px;left:-6px;animation-delay:.4s">❄️</span>`:""}
+          ${B.burn?`<span class="statusfx" style="bottom:-6px;left:2px">🔥</span><span class="statusfx" style="bottom:-2px;right:6px;animation-delay:.5s">🔥</span><span class="statusfx" style="top:-8px;left:8px;animation-delay:.8s;font-size:18px">🔥</span>`:""}
+          ${B.stun?`<span class="statusfx" style="top:-16px;left:50%;margin-left:-12px">⚡</span>`:""}
+          <div id="mFx"></div>
+        </div>
+        <div class="hpbar ${B.mhp<=B.mhpMax*.3?'low':''}"><div style="width:${100*B.mhp/B.mhpMax}%"></div></div>
+        <div class="hptext">${B.mhp}/${B.mhpMax}</div>
+      </div>
+    </div>
+    <div class="qbox">
+      <div class="qlabel">${prob.label}</div>
+      <div class="qtext">${prob.text}${prob.mcq?"":" = ?"}</div>
+      ${prob.mcq?`<div class="optrow">${prob.mcq.map((o,i)=>`<div class="opt" id="opt${i}" onclick="pickOpt(${i})">${"ABCD"[i]}.  ${o}</div>`).join("")}</div>`:`<input type="text" id="ans" inputmode="decimal" autocomplete="off" placeholder="?">`}
+      <div id="scrollout"></div>
+    </div>
+    <div class="spellrow">${spells}</div>
+    <div class="itemrow">
+      <span class="item ${P.potions?'':'none'}" onclick="${P.potions?'usePotion()':''}">${ic('potion',26)} Potion x${P.potions}</span>
+      <span class="item ${P.scrolls?'':'none'}" id="scrollBtn" onclick="${P.scrolls?'useScroll()':''}">${ic('scroll',26)} Hint x${P.scrolls}</span>
+      ${gemChips}
+    </div>
+    ${gemStatus?`<div style="font-size:14px;color:#7a6fb0;font-weight:600;margin-top:6px">💎 borrowed magic — ${gemStatus}</div>`:""}
+    <div class="msg" id="msg">${note||""}</div>`;
+  const ai=document.getElementById("ans"); if(ai)ai.focus();
+  B.mcqChoice=null;
+}
+function pickOpt(i){
+  if(!B||B.resolving)return;
+  B.mcqChoice=i;
+  document.querySelectorAll(".opt").forEach((el,j)=>el.classList.toggle("sel",j===i));
+}
+function activateGem(k){
+  if(!B||B.resolving)return;
+  if(!(P.gems[k]>0)||(P.activeGems[k]||0)>0)return;
+  P.gems[k]--; P.activeGems[k]=GEM_BATTLES; hud();
+  drawBattle(`<span class="good">${GEMS[k].em} The ${GEMS[k].name} glows — ${k.toUpperCase()} magic is yours for ${GEM_BATTLES} battles!</span>`);
+}
+function usePotion(){
+  if(!B||B.resolving)return;
+  if(!P.potions||P.hp>=P.hpMax)
+    {document.getElementById("msg").innerHTML=P.hp>=P.hpMax?"Health is already full!":"";if(P.hp>=P.hpMax)return;}
+  P.potions--; P.hp=Math.min(P.hpMax,P.hp+40); hud();
+  drawBattle(`<span class="good">Glug glug... +40 ❤️! (${P.potions} potions left)</span>`);
+}
+function useScroll(){
+  if(!P.scrolls||B.scrollUsed)return;
+  if(B.prob.mcq){
+    const wrong=B.prob.mcq.map((_,i)=>i).filter(i=>i!==B.prob.ans);
+    const gone=wrong[ri(0,wrong.length-1)];
+    const el=document.getElementById("opt"+gone); if(el)el.classList.add("gone");
+    if(B.mcqChoice===gone){B.mcqChoice=null;}
+    P.scrolls--; B.scrollUsed=true; hud();
+    document.getElementById("scrollBtn").innerHTML=`${ic('scroll',26)} Hint x${P.scrolls}`;
+    document.getElementById("scrollout").innerHTML=`<div style="font-size:14px;color:#7a6fb0;margin-top:6px">The scroll burns away one wrong answer!</div>`;
+    return;
+  }
+  if(!B.prob.setup){document.getElementById("scrollout").innerHTML=`<div style="font-size:14px;color:#7a6fb0;margin-top:6px">The scroll whispers: "work left to right, one step at a time..."</div>`;}
+  else document.getElementById("scrollout").innerHTML=`<span class="worked">${B.prob.setup}</span>`;
+  P.scrolls--; B.scrollUsed=true; hud();
+  document.getElementById("scrollBtn").innerHTML=`${ic('scroll',26)} Hint x${P.scrolls}`;
+  document.getElementById("ans").focus();
+}
+function cast(si){
+  if(!B||B.resolving)return;
+  if((B.cd&&B.cd[si]>0)||P.lvl<SPELLS[si].lvl)return;
+  const s=SPELLS[si];
+  if(!(s.el===P.el||(P.activeGems[s.el]||0)>0))return;
+  const msg=document.getElementById("msg");
+  let ok;
+  if(B.prob.mcq){
+    if(B.mcqChoice==null){msg.innerHTML=`<span class="bad">Pick an answer first — then unleash the spell!</span>`;return;}
+    ok=B.mcqChoice===B.prob.ans;
+  } else {
+    const raw=document.getElementById("ans").value;
+    if(raw.trim()===""){msg.innerHTML=`<span class="bad">Type your answer first — the spell needs its magic number!</span>`;return;}
+    const val=parseAnswer(raw);
+    ok=!isNaN(val)&&Math.abs(val-B.prob.ans)<0.0005;
+  }
+  if(ok){
+    P.solved++;
+    const critBonus=B.prob.review?8:0;
+    let dmg=ri(s.dmg[0],s.dmg[1])+P.pets.reduce((t,p)=>t+petBonusOf(p),0)+SWORDS[P.sword].b+critBonus+(P.lvl>5?(P.lvl-5)*2:0);
+    if(s.cd===0)dmg+=petPerk("quick");
+    if(s.cd>=3)dmg+=petPerk("heavy");
+    let notes=[];
+    if(petProc("crit")){dmg*=2;notes.push(`🐝 STING CRIT — double damage!`);}
+    if(s.fx==="twin"){const d2=ri(s.dmg[0],s.dmg[1]);dmg+=d2;notes.push(`${s.icon} strikes twice (${dmg-d2} + ${d2})!`);}
+    if(s.fx==="lance"&&B.freeze>0){dmg*=2;B.freeze=0;notes.push(`🔮 SHATTER CRIT on the frozen foe — DOUBLE damage!`);}
+    if(B.burn&&B.burn.rounds>0){B.mhp=Math.max(0,B.mhp-B.burn.dmg);B.burn.rounds--;notes.push(`🔥 burn sears for ${B.burn.dmg}!`);if(!B.burn.rounds)B.burn=null;}
+    B.mhp=Math.max(0,B.mhp-dmg);
+    if(s.burn&&B.mhp>0){B.burn={dmg:s.burn[0]+petPerk("kindle"),rounds:s.burn[1]};notes.push(`🔥 ${B.m[0]} is BURNING!`);}
+    if(s.stun){B.stun=Math.max(B.stun,s.stun);notes.push(`⚡ ${B.m[0]} is STUNNED — its next counterattack will fail!`);}
+    if(s.freeze){B.freeze=s.freeze;notes.push(`❄️ ${B.m[0]} is FROZEN — its next ${s.freeze} hits are halved!`);}
+    if(s.heal){P.hp=Math.min(P.hpMax,P.hp+s.heal);notes.push(`${s.icon} restores ${s.heal} ❤️`);}
+    if(s.fx==="drain"){const h=Math.round(dmg/3);P.hp=Math.min(P.hpMax,P.hp+h);notes.push(`🌑 drained ${h} ❤️ from ${B.m[0]}!`);}
+    if(s.fx==="windfall"){const g=+(ri(15,45)/10).toFixed(1);P.gold=+(P.gold+g).toFixed(2);notes.push(`🌪️ the cyclone blows ${g.toFixed(2)} gold into your pouch!`);}
+    if(s.fx==="ultimate"&&B.mhp>0){B.burn={dmg:6,rounds:3};B.stun=Math.max(B.stun,1);notes.push(`🌌 ${B.m[0]} is BURNING and STUNNED!`);}
+    if(s.cd){B.cd[si]=s.cd+1;notes.push(`⏳ ${s.name} recharging (${s.cd})`);}
+    if(B.mhp>0&&!B.freeze&&petProc("chill")){B.freeze=1;notes.push(`🧊 Frost Golem CHILLS the foe — next hit halved!`);}
+    if(petProc("sweep")){let swept=false;for(const k in B.cd){if(B.cd[k]>1){B.cd[k]--;swept=true;}}if(swept)notes.push(`🧹 Sweepy dusts a turn off your recharges!`);}
+    document.getElementById("pSpr").classList.add("castfx");
+    document.getElementById("fx").innerHTML=fxImg(s.fx,40)||s.icon;
+    const mS=document.getElementById("mSpr");
+    const mFxEl=document.getElementById("mFx");
+    setTimeout(()=>{
+      mS.classList.add(B.mhp<=0?"faint":"hitfx");
+      if(mFxEl)mFxEl.innerHTML=`<span class="impact">${fxImg(s.fx,72)||`<span style=\"font-size:56px\">${s.icon}</span>`}</span>`;
+    },250);
+    gainXp(B.isBoss?14:(B.prob.review?13:9));
+    const lead=B.prob.review?`🕰️ MEMORY CRIT! Old magic — ${s.name} hits for ${dmg}!`:`${s.name} hits for ${dmg}!`;
+    if(B.mhp<=0){
+      B.resolving=true;
+      document.querySelectorAll(".spell,.item").forEach(el=>el.style.pointerEvents="none");
+      const ai=document.getElementById("ans"); if(ai)ai.disabled=true;
+      setTimeout(winBattle,800);
+    }
+    else setTimeout(()=>{ if(B&&!B.resolving)drawBattle(`<span class="good">${lead}</span> ${notes.join(" ")}`); },820);
+  } else {
+    P.missed++; B.perfect=false;
+    const sol=B.prob.mcq?`<br><b>Answer: ${"ABCD"[B.prob.ans]}. ${B.prob.mcq[B.prob.ans]}</b><br><span style="font-size:15px">${B.prob.sol}</span>`:(B.prob.sol?`<br><span class="worked">${B.prob.sol}</span>`:`<br><b>Answer: ${fmt(B.prob.ans)}</b> — two steps, left to right.`);
+    if(B.stun>0){
+      B.stun--;
+      msg.innerHTML=`<span class="bad">The spell fizzled...</span> <span class="good">but ${B.m[0]} is ⚡ STUNNED and can't strike back!</span><br>Study the move, then try a fresh problem:${sol}
+      <br><button class="purple" onclick="drawBattle('')">New problem</button>`;
+      document.querySelectorAll(".spell").forEach(el=>el.style.pointerEvents="none");
+      return;
+    }
+    if(petProc("dodge")){
+      msg.innerHTML=`<span class="bad">The spell fizzled...</span> <span class="good">but 🦇 Prism Bat swoops in — the counterattack MISSES!</span><br>Study the move, then try a fresh problem:${sol}
+      <br><button class="purple" onclick="drawBattle('')">New problem</button>`;
+      document.querySelectorAll(".spell").forEach(el=>el.style.pointerEvents="none");
+      return;
+    }
+    let hit=Math.max(2,ri(10,18)-SHIELDS[P.shield].r-petPerk("guard"));
+    let frozeNote="";
+    if(B.freeze>0){hit=Math.max(1,Math.floor(hit/2));B.freeze--;frozeNote=" (❄️ frozen — hit halved!)";}
+    else if(petProc("ink")){hit=Math.max(1,Math.floor(hit/2));frozeNote=" (🦑 Inky's cloud halves it!)";}
+    if(P.hp-hit<=0&&!B.featherUsed&&P.pets.some(p=>p[0]==="Ash Phoenix"||p[0]==="Pyra Jr."&&false)){}
+    if(P.hp-hit<=0&&!B.featherUsed&&P.pets.some(p=>p[0]==="Ash Phoenix")){
+      B.featherUsed=true;
+      const fh=petPerk("feather");
+      P.hp=1+fh;
+      hud();
+      msg.innerHTML=`<span class="bad">A crushing blow...</span> <span class="good">🐦‍🔥 PHOENIX FEATHER! Ash Phoenix pulls you back from the brink (+${fh} ❤️)!</span><br>Study the move:${sol}
+      <br><button class="purple" onclick="drawBattle('')">New problem</button>`;
+      document.querySelectorAll(".spell").forEach(el=>el.style.pointerEvents="none");
+      return;
+    }
+    P.hp=Math.max(0,P.hp-hit);
+    document.getElementById("mSpr").classList.add("castfx");
+    setTimeout(()=>document.getElementById("pSpr").classList.add("hitfx"),200);
+    hud();
+    if(P.hp<=0){ setTimeout(faint,700); return;}
+    const blocked=SHIELDS[P.shield].r?` (${SHIELDS[P.shield].em} blocked ${SHIELDS[P.shield].r}!)`:"";
+    msg.innerHTML=`<span class="bad">The spell fizzled! ${B.m[0]} strikes for ${hit}${blocked}${frozeNote}</span><br>Study the move, then try a fresh problem:${sol}
+      <br><button class="purple" onclick="drawBattle('')">New problem</button>`;
+    document.querySelectorAll(".spell").forEach(el=>el.style.pointerEvents="none");
+  }
+}
+function gainXp(n){
+  P.xp+=n;
+  while(P.xp>=xpCap(P.lvl)){
+    P.lvl++; P.hpMax+=(P.lvl<=5?15:10); P.hp=P.hpMax;
+    B.levelUp=true;
+  }
+  hud();
+}
+
+/* ---------- treasure chest after each win ---------- */
+function rollChest(){
+  if(B.isBoss)return {k:"ch_dragon",name:"DRAGON CHEST",mult:3};
+  const r=Math.random();
+  if(r<0.05)return {k:"ch_crystal",name:"Crystal Chest",mult:2.5};
+  if(r<0.20)return {k:"ch_red",name:"Royal Chest",mult:1.8};
+  if(r<0.45)return {k:"ch_blue",name:"Steel Chest",mult:1.3};
+  return {k:"ch_wood",name:"Chest",mult:1};
+}
+function winBattle(){
+  if(!B||B.resolved)return;
+  B.resolved=true;
+  B.chest=rollChest();
+  B.evoNotes=[];
+  for(const k of Object.keys(P.activeGems)){
+    if(P.activeGems[k]>0){P.activeGems[k]--;if(P.activeGems[k]===0){delete P.activeGems[k];B.evoNotes.push(`${GEMS[k].em} The ${GEMS[k].name}'s borrowed magic fades away...`);}}
+  }
+  const wh=petPerk("winheal"); if(wh)P.hp=Math.min(P.hpMax,P.hp+wh);
+  const wg=petPerk("wingold"); if(wg){P.gold=+(P.gold+wg).toFixed(2);}
+  for(const p of P.pets){
+    const before=petStage(p);
+    p[2]=(p[2]||0)+1;
+    if(petStage(p)>before)B.evoNotes.push(`🌟 ${p[0]} EVOLVED! (${PET_ABIL[p[0]]?PET_ABIL[p[0]].d(petStage(p)):"stronger!"})`);
+  }
+  const newSpell=SPELLS.find(x=>x.lvl===P.lvl&&x.el===P.el);const lvlNote=B.levelUp?`<h2 class="burst">🎉 LEVEL UP! You're Lv ${P.lvl}! ${newSpell?`New magic: ${newSpell.icon} ${newSpell.name}!`:"+2 spell power, +10 max ❤️!"}</h2>`:"";
+  B.levelUp=false;
+  screen.innerHTML=`
+    ${lvlNote}
+    ${(B.evoNotes||[]).map(n=>`<h2 class="burst" style="font-size:20px">${n}</h2>`).join("")}
+    <h2>Victory!</h2>
+    <p class="story">The ${B.m[0]} left behind a ${B.chest.name}${B.chest.mult>1?" — extra shiny!":""}...</p>
+    <div class="chest" onclick="openChest(this)"><img src="${ART[B.chest.k]}" style="height:120px;border-radius:14px" alt=""></div>
+    <p class="story" style="font-size:15px;color:#6b6390">Tap to open!</p>`;
+}
+function openChest(el){
+  el.style.pointerEvents="none";
+  const roll=Math.random();
+  let loot,lootMsg;
+  if(roll<0.12 && true){P.potions++; loot=ic('potion',96); lootMsg="A Health Potion!";}
+  else if(roll<0.2){P.scrolls++; loot=ic('scroll',96); lootMsg="A Hint Scroll!";}
+  else {const mim=P.pets.reduce((m,p)=>{const a=PET_ABIL[p[0]];return a&&a.chestmult?Math.max(m,a.chestmult(petStage(p))):m;},1);const g=+((ri(B.isBoss?120:35,B.isBoss?220:95)/10)*B.chest.mult*mim).toFixed(1); P.gold=+(P.gold+g).toFixed(2); loot=ic('coins',96); lootMsg=`${g.toFixed(2)} gold!`;}
+  if(B.chest.k==="ch_crystal"||(B.chest.k==="ch_red"&&Math.random()<0.2)){
+    const ks=Object.keys(GEMS).filter(k=>k!==P.el);const gk=ks[ri(0,ks.length-1)];
+    P.gems[gk]=(P.gems[gk]||0)+1;
+    lootMsg+=` …and a ${GEMS[gk].em} ${GEMS[gk].name}!`;
+  }
+  hud();
+  const parent=el.parentElement;
+  el.outerHTML=`<div class="burst" style="margin:8px 0">${loot}</div>`;
+  parent.querySelectorAll(".story")[1].outerHTML=`
+    <h2 class="burst">${lootMsg}</h2>
+    <div id="chestNext"></div>`;
+  setTimeout(()=>{
+    document.getElementById("chestNext").innerHTML = petOffer() || nextButtons();
+  },500);
+}
+function petOffer(){
+  const canCatch=!B.tower && P.pets.length<8 && !P.pets.some(p=>p[0]===B.m[0]) && !B.isBoss && Math.random()<0.45;
+  if(!canCatch)return null;
+  return `
+    <div class="burst">${mobArt(B.m)?`<img class="bigface" src="${mobArt(B.m)}" alt="">`:`<div class="big">${B.m[1]}</div>`}</div>
+    <p class="story">${B.m[0]} was so impressed by your decimal magic it wants to join your team!</p>
+    <p class="story" style="background:#efe9ff;border-radius:12px;padding:8px 12px"><b>Ability — ${PET_ABIL[B.m[0]]?PET_ABIL[B.m[0]].d(0):"+2 damage"}</b><br><span style="font-size:14px;color:#6b6390">(grows stronger as it evolves)</span></p>
+    <button class="goldb" onclick="P.pets.push([B.m[0],B.m[1],0]);hud();document.getElementById('chestNext').innerHTML=nextButtons('✨ '+B.m[0]+' joined your team!')">Welcome aboard!</button>
+    <button class="purple" onclick="document.getElementById('chestNext').innerHTML=nextButtons()">Maybe later</button>`;
+}
+function nextButtons(extra=""){
+  if(B.tower){
+    setTimeout(()=>towerNext(),50);
+    return extra?`<p class="story good">${extra}</p>`:"";
+  }
+  if(B.isBoss&&!B.tower){setTimeout(()=>zoneClear(extra?'<h2 class="burst">'+extra+'</h2>':''),50);return "";}
+  B.stage++;
+  const bossNext=B.stage===3;
+  return `${extra?`<p class="story good">${extra}</p>`:""}
+    <p class="story">${bossNext?"The sealed boss door lies ahead. You'll need the 🗝️ key...":""}</p>
+    <button onclick="nextBattle()">${bossNext?"Find the Boss Key 🗝️":"Next battle ➜"}</button>
+    <button class="purple" onclick="mapScreen()">Back to map</button>
+    <button class="goldb" onclick="shop('','run')">🏪 Shop</button>`;
+}
+
+function zoneClear(extra){
+  const stars=B.perfect?3:(P.hp>=P.hpMax*.5?2:1);
+  P.stars[B.zone]=Math.max(P.stars[B.zone],stars);
+  if(B.zone===P.zone && P.zone<4) P.zone++;
+  const done=B.zone===4;
+  hud();
+  if(done) return victory();
+  screen.innerHTML=`
+    ${extra}
+    <div class="confetti">🎊✨🎊</div>
+    <h2>Realm cleared!</h2>
+    <div class="big">${ZONES[B.zone].em}➜💠</div>
+    <p class="story">You claimed the <b>${ZONES[B.zone].name} Number Crystal</b> and earned ${"⭐".repeat(stars)}${stars===3?" — a PERFECT run!":""}</p>
+    <p class="story">A new realm has opened. Your health is restored — maybe visit Beedle before you go?</p>
+    <button class="goldb" onclick="mapScreen()">To the map!</button>
+    <button class="purple" onclick="shop('','map')">🏪 Shop first</button>`;
+}
+function faint(){
+  if(B&&B.tower){
+    const f=B.towerFloor-1;
+    P.towerBest=Math.max(P.towerBest||0,f);
+    const reward=+(f*2.5).toFixed(1);
+    P.gold=+(P.gold+reward).toFixed(2);
+    B=null; hud();
+    screen.innerHTML=`
+      <div class="big">🗼💫</div>
+      <h2>The Tower claims you at floor ${f+1}...</h2>
+      <p class="story">But what a climb! You cleared <b>${f} floor${f===1?"":"s"}</b> and earned <b>${reward.toFixed(2)} bonus gold</b>. Record: floor ${P.towerBest}.</p>
+      <button class="goldb" onclick="mapScreen('Rested and ready — the Tower will remember you.')">Return to the map</button>`;
+    return;
+  }
+  screen.innerHTML=`
+    <div class="big">😵‍💫</div>
+    <h2>You're out of energy!</h2>
+    <p class="story">The ${B.m[0]} was tough — but heroes never quit. You keep all your gold, gear, XP, and pets. Rest up and charge back in!</p>
+    <button class="goldb" onclick="mapScreen('Fully rested and ready for round two!')">Rest & return to map</button>`;
+}
+function victory(){
+  P.wonGame=true;
+  let hatch="";
+  if(!P.pets.some(p=>p[0]==="Pyra Jr.")&&P.pets.length<12){
+    P.pets.push(["Pyra Jr.","🐲",0]);
+    hatch=`<h2 class="burst" style="color:#c2410c">🥚 A dragon egg from the hoard hatches... Pyra Jr. joins your team!</h2>`;
+  }
+  hud();
+  const acc=P.solved+P.missed?Math.round(100*P.solved/(P.solved+P.missed)):100;
+  screen.innerHTML=`
+    <div class="confetti">🎊🎇🎊🎇🎊</div>
+    <img class="zonehero burst" src="${ART.finale}" alt="" style="max-width:520px">
+    <h1>THE LEDGER IS BALANCED!</h1>
+    ${hatch}
+    <p class="story">Pyra the Dragon surrenders the final Number Crystal — and the Dragon's Ledger itself! <b>${P.name}</b>, Level ${P.lvl} ${ELEMENTS[P.el].name} Wizard, you are the hero of the Decimal Realms!</p>
+    <p class="story">Problems solved: <b>${P.solved}</b> • Accuracy: <b>${acc}%</b> • Gold: <b>${P.gold.toFixed(2)}</b> • Pets: <b>${P.pets.length}</b> • Gear: ${SWORDS[P.sword].em}${SHIELDS[P.shield].em||""}</p>
+    <div class="petrow">${P.pets.map(p=>`<span class="petchip">${mobFace(p)}</span>`).join("")}</div>
+    <p class="story">Replay any realm for 3 ⭐ — or ascend and face the Ledger anew: bigger numbers, tougher foes, same hero.</p>
+    <button class="goldb" onclick="ascend()">⬆️ Ascend to Ledger Rank ${(P.rank||0)+2}</button>
+    <button onclick="mapScreen()">Back to map</button>
+    <button class="purple" onclick="titleScreen()">New wizard</button>`;
+}
+function ascend(){
+  P.rank=(P.rank||0)+1; P.stars=[0,0,0,0,0];
+  hud();
+  mapScreen(`<img class="zonehero" src="img/ascend-banner.jpg" alt="" style="max-width:300px"><br>✦ Ledger Rank ${P.rank+1}! The realms have grown wilder — numbers reach further, monsters hit harder, and your legend grows. All gear, pets, and levels carried over.`);
+}
+
+titleScreen();
+
+/* Register the service worker so the game keeps working with no signal.
+   Guarded heavily: offline support is a bonus, never a reason for a kid to
+   hit a broken screen. */
+if("serviceWorker" in navigator && location.protocol.startsWith("http")){
+  window.addEventListener("load", ()=>{
+    navigator.serviceWorker.register("sw.js").catch(err=>{
+      console.warn("Service worker registration failed:", err);
+    });
+  });
+}
+</script>
+</body>
+</html>

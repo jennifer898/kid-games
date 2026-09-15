@@ -1,0 +1,17 @@
+{
+  "name": "Spellbound: The Dragon's Ledger",
+  "short_name": "Spellbound",
+  "description": "A math adventure: battle dragons by solving decimal, money and review problems.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#8ed3f4",
+  "theme_color": "#4b3a8f",
+  "categories": ["education", "games", "kids"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

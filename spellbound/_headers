@@ -1,0 +1,32 @@
+# Header rules for Netlify.
+#
+# These duplicate the [[headers]] blocks in netlify.toml on purpose: this file
+# is what drag-and-drop (manual) deploys read most reliably, and netlify.toml
+# is what a Git-connected build reads. Keep the two in sync if you edit either.
+
+/*
+  X-Robots-Tag: noindex, nofollow, noarchive, noimageindex
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: no-referrer
+
+# The page and the worker must revalidate, or a new deploy never reaches a
+# device that already has the old one.
+/index.html
+  Cache-Control: public, max-age=0, must-revalidate
+
+/sw.js
+  Cache-Control: public, max-age=0, must-revalidate
+
+/manifest.webmanifest
+  Cache-Control: public, max-age=0, must-revalidate
+
+# Art, fonts and icons change rarely; when they do, the service worker's
+# version changes and the whole cache is replaced anyway.
+/img/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/fonts/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/icons/*
+  Cache-Control: public, max-age=31536000, immutable
