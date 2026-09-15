@@ -1,0 +1,49 @@
+# Netlify config for Charlotte's Spelling Stickers.
+# Static site, no build step — the files in the repo are what gets served.
+
+[build]
+  publish = "."
+
+# Keep the site out of search results. It carries a child's full name, so it
+# should be reachable by anyone with the link and by nobody else.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow, noarchive, noimageindex"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "no-referrer"
+
+# The page itself must always be revalidated, or a redeploy never reaches a
+# device that already has it.
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# Same for the worker: if this gets cached hard, offline updates stop landing.
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/manifest.webmanifest"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# Artwork, fonts and icons are immutable in practice — when they change, the
+# service worker's VERSION changes and the whole cache is replaced anyway.
+[[headers]]
+  for = "/img/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/fonts/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/icons/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
