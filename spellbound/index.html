@@ -407,6 +407,13 @@ function worked(a,b,op,ans){
   const pad=s=>s.padStart(w," ");
   return pad(f(a))+"\n"+op+pad(f(b)).slice(1)+"\n"+"—".repeat(w)+"\n"+pad(f(ans));
 }
+/* Two-step problems can't use worked(), which lays out a single sum. This
+   spells out the intermediate value so a hint scroll shows the method rather
+   than just handing over the answer. */
+function worked2(a,b,c,op1,op2,mid,ans,unit){
+  const u=unit||"";
+  return `Step 1:  ${fmt(a)} ${op1} ${fmt(b)} = ${fmt(mid)}${u}\nStep 2:  ${fmt(mid)} ${op2} ${fmt(c)} = ${fmt(ans)}${u}`;
+}
 function setupOnly(a,b,op){
   const decs=x=>{const s=fmt(x);return s.includes(".")?s.split(".")[1].length:0;};
   const d=Math.max(decs(a),decs(b));
@@ -535,8 +542,8 @@ function makeProblem(mode,isBoss){
     case "add1":
       a=A1();b=A1();
       if(isBoss){c=A1();
-        if(wantSub){if(a+b<c)[a,c]=[c,a];ans=big(a+b-c);text=`${fmt(a)} + ${fmt(b)} − ${fmt(c)}`;label="Boss round: add, then subtract!";}
-        else {ans=big(a+b+c);text=`${fmt(a)} + ${fmt(b)} + ${fmt(c)}`;label="Boss round: three numbers!";}}
+        if(wantSub){if(a+b<c)[a,c]=[c,a];ans=big(a+b-c);text=`${fmt(a)} + ${fmt(b)} − ${fmt(c)}`;label="Boss round: add, then subtract!";sol=worked2(a,b,c,"+","−",big(a+b),ans);}
+        else {ans=big(a+b+c);text=`${fmt(a)} + ${fmt(b)} + ${fmt(c)}`;label="Boss round: three numbers!";sol=worked2(a,b,c,"+","+",big(a+b),ans);}}
       else if(wantSub){if(a<b)[a,b]=[b,a];ans=big(a-b);text=`${fmt(a)} − ${fmt(b)}`;label="Line up the points, then subtract";sol=worked(a,b,"−",ans);setup=setupOnly(a,b,"−");}
       else{ans=big(a+b);text=`${fmt(a)} + ${fmt(b)}`;label="Line up the decimal points";sol=worked(a,b,"+",ans);setup=setupOnly(a,b,"+");}
       break;
@@ -558,11 +565,11 @@ function makeProblem(mode,isBoss){
       if(k===0){a=cash();b=cash();ans=+(a+b).toFixed(2);text=`Potions cost ${fmt$(a)} and ${fmt$(b)}. Total?`;label="Answer like 12.75";sol=worked(a,b,"+",ans);setup=setupOnly(a,b,"+");}
       else if(k===1){a=ri(10,50+t*10);b=cash();while(b>=a)b=cash();ans=+(a-b).toFixed(2);text=`Pay ${fmt$(a)} for a ${fmt$(b)} wand. Change?`;label="Answer like 3.25";sol=worked(a,b,"−",ans);setup=setupOnly(a,b,"−");}
       else if(k===2){a=cash();b=cash();ans=+(a+b).toFixed(2);text=`Pouch: ${fmt$(a)}. You earn ${fmt$(b)}. New total?`;label="Answer like 20.50";sol=worked(a,b,"+",ans);setup=setupOnly(a,b,"+");}
-      else {a=cash();b=cash();c=ri(40,60+t*15);while(a+b>=c){a=cash();b=cash();}ans=+(c-a-b).toFixed(2);text=`You buy loot for ${fmt$(a)} and ${fmt$(b)}, paying with ${fmt$(c)}. Change?`;label="Add first, then subtract";}
+      else {a=cash();b=cash();c=ri(40,60+t*15);while(a+b>=c){a=cash();b=cash();}ans=+(c-a-b).toFixed(2);text=`You buy loot for ${fmt$(a)} and ${fmt$(b)}, paying with ${fmt$(c)}. Change?`;label="Add first, then subtract";sol=(()=>{const spent=+(a+b).toFixed(2);return `Step 1:  ${fmt$(a)} + ${fmt$(b)} = ${fmt$(spent)} spent\nStep 2:  ${fmt$(c)} − ${fmt$(spent)} = ${fmt$(ans)} change`;})();}
       break;}
     case "mixed":{
       const k=ri(0,2);
-      if(k===0){a=D2();b=D2();c=A1();if(a+b<c)[a,c]=[c,a];ans=big(a+b-c);text=`${fmt(a)} + ${fmt(b)} − ${fmt(c)}`;label="Two steps, left to right";}
+      if(k===0){a=D2();b=D2();c=A1();if(a+b<c)[a,c]=[c,a];ans=big(a+b-c);text=`${fmt(a)} + ${fmt(b)} − ${fmt(c)}`;label="Two steps, left to right";sol=worked2(a,b,c,"+","−",big(a+b),ans);}
       else if(k===1){a=ri(10,40+t*10);b=D2();if(b>=a){b=+(ri(101,Math.floor(a*100)-1)/100).toFixed(2);}ans=big(a-b);text=`${fmt(a)} − ${fmt(b)}`;label="Borrow across the zeros";sol=worked(a,b,"−",ans);setup=setupOnly(a,b,"−");}
       else{a=D2();b=D2();ans=big(a+b);text=`${fmt(a)} + ${fmt(b)}`;label="Line up and add";sol=worked(a,b,"+",ans);setup=setupOnly(a,b,"+");}
       break;}

@@ -13,7 +13,7 @@
    which refreshes the asset list and bumps VERSION so browsers pick the
    new files up. */
 
-const VERSION = "1801f14d9058";
+const VERSION = "d54fe510647c";
 const CACHE = `spellbound-${VERSION}`;
 const ASSETS = [
   "./",
