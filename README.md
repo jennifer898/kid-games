@@ -74,26 +74,44 @@ Recorded voice cheers never leave the device.
 opened on a device it keeps working with no signal. It's also installable to a
 phone's home screen via `manifest.webmanifest`.
 
-**After changing `index.html` or anything under `img/`, `fonts/` or `icons/`,
-run:**
+### When you need to run the build script
 
 ```sh
 python3 tools/build-sw.py
 ```
 
-That refreshes the service worker's file list and bumps its cache version, which
-is what makes browsers pick up the new files. Skip it and devices will keep
-serving the old cached copy.
+| You changed | Run it? |
+|---|---|
+| Words, sentences, anything in `index.html` | **Not required.** The page is fetched fresh whenever the device is online, so edits land on their own. |
+| Anything in `img/`, `fonts/` or `icons/` | **Yes.** Those are served from the cache until the script bumps the version, so a device that already has the old art keeps showing it. |
+
+Running it after a word change does no harm, and means a device that is
+*never* online picks the change up sooner. If you can't run Python at all, the
+game still works — you'd just need to swap art rarely, or accept that changed
+art takes an extra visit to appear.
 
 ## Deploying (Netlify)
 
-Push — `netlify.toml` handles the rest. It publishes the repo root, sets long
-cache lifetimes on the immutable art and fonts, keeps `index.html`/`sw.js`
-revalidating so redeploys actually land, and sends `X-Robots-Tag: noindex`.
+This site is deployed by hand — drag the folder onto Netlify's deploy page and
+it replaces the live version. There's no build step to configure; Netlify serves
+the files exactly as they are.
+
+1. If you changed art, run `python3 tools/build-sw.py` first (see above).
+2. Go to your site on <https://app.netlify.com> → **Deploys**.
+3. Drag this whole folder onto the drop zone at the bottom of that page.
+4. Wait for "Published", then open the site and hard-refresh once.
+
+Drag the **folder itself**, not the files inside it, and not just `index.html` —
+the game now needs `img/`, `fonts/` and `icons/` alongside it.
+
+`_headers` sets long cache lifetimes on the art and fonts, keeps `index.html`
+and `sw.js` revalidating so new deploys actually land, and sends
+`X-Robots-Tag: noindex`. `netlify.toml` says the same thing for the day you
+connect this to GitHub instead; keep the two in sync if you edit either.
 
 The site carries a child's full name, so it's deliberately unlisted: `noindex`
-in `netlify.toml`, a meta tag in the page, and `robots.txt`. That keeps it out
-of search results — it does not make the URL secret.
+headers, a meta tag in the page, and `robots.txt`. That keeps it out of search
+results — it does not make the URL secret.
 
 ## Layout
 
@@ -104,6 +122,7 @@ fonts/                  Baloo 2, self-hosted (SIL OFL 1.1)
 icons/                  home-screen and favicon icons
 sw.js                   offline cache — generated, see tools/build-sw.py
 manifest.webmanifest    home-screen install metadata
-netlify.toml            headers and cache policy
+_headers                headers and cache policy (manual deploys)
+netlify.toml            the same, for a future Git-connected deploy
 tools/build-sw.py       regenerates sw.js's file list and version
 ```
